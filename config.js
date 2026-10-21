@@ -4,6 +4,6 @@
    readerUrl → la función de Vercel que lee fotos con Claude. Déjala así.
    La clave (TOKEN) NO va aquí: la app la pide la primera vez y la guarda en el móvil. */
 window.U22_CONFIG = {
-  scriptUrl: "",
+  scriptUrl: "https://script.google.com/macros/s/AKfycbzht_KRgc69S7NrHw02UO3ENyTyWZyk--ipSHnevc1kzpdA-nhzUSqGpIQ-RAWzcIGcEw/exec",
   readerUrl: "/api/leer"
 };
