@@ -1,0 +1,881 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.holdbtn{position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
+.holdbtn .holdfill{position:absolute;inset:0;width:0;background:currentColor;opacity:.18;transition:none}
+.holdbtn.holding .holdfill{width:100%;transition:width 1.5s linear}
+.holdbtn .holdtxt{position:relative}
+#kioskOff{color:#fff;border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
+</style><meta name="theme-color" content="#7a0b35">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Amara U22"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>#u22-token-box{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:16px;background:linear-gradient(160deg,#7a0b35,#d81b6a)}
+#u22-token-box .tk-card{background:#fff;color:#22141a;border-radius:20px;padding:28px 22px;max-width:360px;width:100%;text-align:center;font:16px/1.4 system-ui,sans-serif}
+#u22-token-box h2{margin:10px 0 6px;font:700 24px/1.1 system-ui,sans-serif;color:#7a0b35}
+#u22-token-box p{margin:0 0 16px;color:#6e5a63;font-size:15px}
+#u22-token-box input{width:100%;box-sizing:border-box;font-size:18px;padding:12px;border:1px solid #e4d4db;border-radius:12px;margin-bottom:12px}
+#u22-token-box button{width:100%;font:700 17px system-ui,sans-serif;padding:13px;border:0;border-radius:12px;background:#a3124b;color:#fff}</style>
+<script src="config.js"></script><script src="shim.js"></script>
+</head><body>
+<title>Amara Lleida U22</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: app de una pantalla, cabecera fija arriba, contenido en columna, barra de pestañas abajo. Colores del escudo Amara Lleida (granate y magenta). */
+:root{
+  --bg:#f7f2f4; --surface:#ffffff; --surface-2:#f1e6eb; --fg:#22141a; --muted:#6e5a63; --line:#e4d4db;
+  --accent:#a3124b; --accent-fg:#ffffff; --accent-soft:#f8dde8; --brand:#7a0b35; --brand-fg:#ffffff;
+  --ok:#2f7d4f; --warn:#b26a00; --bad:#b3261e; --ok-soft:#e1f1e6; --warn-soft:#fbecd2; --bad-soft:#f8dedc;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif; --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#150c10; --surface:#1f141a; --surface-2:#2b1c23; --fg:#f4e9ee; --muted:#b59ba6; --line:#3d2832;
+  --accent:#ff6fa4; --accent-fg:#2a0614; --accent-soft:#4a1a2e; --brand:#5e0828; --brand-fg:#ffffff;
+  --ok:#6cc48f; --warn:#e7a542; --bad:#ef7d74; --ok-soft:#173826; --warn-soft:#3a2a10; --bad-soft:#3d1a18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#150c10; --surface:#1f141a; --surface-2:#2b1c23; --fg:#f4e9ee; --muted:#b59ba6; --line:#3d2832;
+  --accent:#ff6fa4; --accent-fg:#2a0614; --accent-soft:#4a1a2e; --brand:#5e0828; --brand-fg:#ffffff;
+  --ok:#6cc48f; --warn:#e7a542; --bad:#ef7d74; --ok-soft:#173826; --warn-soft:#3a2a10; --bad-soft:#3d1a18; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:16px/1.45 var(--body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--brand)}
+*{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:flex;flex-direction:column;min-height:100%}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--brand);color:var(--brand-fg);
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;align-items:center;gap:12px}
+header h1{font:700 26px/1 var(--display);letter-spacing:.02em;margin:0;text-transform:uppercase}
+header .sync{margin-left:auto;font-size:13px;opacity:.9;display:flex;align-items:center;gap:8px}
+header button{background:transparent;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-size:13px}
+main{flex:1;padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(6,1fr);padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs button{background:none;border:0;padding:10px 4px 12px;font:600 15px/1.1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+nav.tabs button[aria-selected="true"]{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+.label{font:600 13px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+input[type=date],input[type=number],input[type=text]{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;padding:8px 14px;border-radius:8px;font:600 16px/1 var(--display);letter-spacing:.04em}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.btn{background:var(--accent);color:var(--accent-fg);border:0;border-radius:10px;padding:10px 16px;font:600 17px/1 var(--display);letter-spacing:.05em;text-transform:uppercase}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn:disabled{opacity:.5}
+.note{font-size:14px;color:var(--muted)}
+.banner{border-radius:12px;padding:12px 14px;font-size:15px;display:flex;flex-direction:column;gap:8px}
+.banner.warn{background:var(--warn-soft);color:var(--fg);border:1px solid var(--warn)}
+.banner.bad{background:var(--bad-soft);color:var(--fg);border:1px solid var(--bad)}
+.banner.info{background:var(--accent-soft);color:var(--fg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:0;overflow:hidden;text-align:left;display:flex;flex-direction:column}
+.card .photo{aspect-ratio:1/1;width:100%;max-width:100%;background:var(--surface-2);display:grid;place-items:center;font:700 44px/1 var(--display);color:var(--accent)}
+.card .photo img{width:100%;height:100%;object-fit:cover;display:block}
+.card .name{padding:8px 10px 10px;font:600 20px/1.1 var(--display);letter-spacing:.02em}
+.card .badge{position:absolute;top:8px;right:8px;min-width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+  font:700 26px/1 var(--display);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);font-variant-numeric:tabular-nums}
+.card .badge.pending{background:var(--surface);color:var(--warn);border:2px dashed var(--warn);font-size:13px;line-height:1.05;padding:2px 4px;text-align:center}
+.card.saving{opacity:.6}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:92%;overflow:auto}
+.sheet h2{margin:0;font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.02em}
+.scale{display:flex;flex-direction:column;gap:6px}
+.scale button{display:grid;grid-template-columns:52px 1fr;align-items:center;gap:12px;border:0;border-radius:12px;padding:6px 12px 6px 6px;text-align:left;
+  background:var(--surface-2);min-height:48px}
+.scale button .n{height:40px;border-radius:9px;display:grid;place-items:center;font:700 26px/1 var(--display);color:#fff;font-variant-numeric:tabular-nums}
+.scale button .t{font-weight:500}
+.scale button[aria-pressed="true"]{outline:3px solid var(--accent)}
+.list{display:flex;flex-direction:column;gap:8px}
+.wrow{display:grid;grid-template-columns:minmax(0,1fr) 92px 70px 64px;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.wrow .nm{font:600 19px/1.1 var(--display);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wrow .sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.pct{font:600 18px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;border-radius:999px;padding:3px 10px;font:600 14px/1.2 var(--display);letter-spacing:.04em;text-transform:uppercase}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.inrow{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:10px;align-items:center}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.chips button{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;font:600 17px/1 var(--display);letter-spacing:.03em}
+.chips button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi b{font:700 32px/1 var(--display);font-variant-numeric:tabular-nums}
+svg text{fill:var(--muted);font:12px var(--body)}
+.chartbox{overflow-x:auto;position:relative;touch-action:pan-y}
+.chartbox svg{cursor:crosshair}
+.ctip{position:absolute;top:4px;transform:translateX(-50%);background:var(--fg);color:var(--bg);border-radius:8px;padding:5px 9px;font-size:13px;line-height:1.25;white-space:nowrap;pointer-events:none;z-index:2;text-align:center}
+.ctip b{font:700 16px/1 var(--display);display:block}
+.chartbox rect.dim{opacity:.35}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);
+  padding:10px 16px;border-radius:999px;font-size:15px;z-index:30;max-width:calc(100% - 32px)}
+.empty{text-align:center;color:var(--muted);padding:24px 8px}
+.ph-row{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.ph-row .av{width:56px;height:56px;border-radius:12px;background:var(--surface-2);overflow:hidden;display:grid;place-items:center;font:700 22px/1 var(--display);color:var(--accent)}
+.ph-row .av img{width:100%;height:100%;object-fit:cover}
+.ph-row label.btn{display:inline-block;font-size:15px;padding:8px 12px}
+.ph-row input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.day{display:flex;flex-direction:column;gap:6px}
+.day h3{margin:0;font:600 18px/1.1 var(--display);text-transform:capitalize;letter-spacing:.02em}
+.ses{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.ses .tag{font:700 16px/1 var(--display);background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:6px 8px}
+.ses .what{min-width:0}
+.ses .what b{font-weight:600}
+.ses .st{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:13px}
+.ses.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.drow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;background:var(--surface-2);border-radius:12px;padding:10px}
+.drow .wide{grid-column:span 3}.drow .full{grid-column:1/-1}.drow .half{grid-column:span 2}
+.drow input,.drow select{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px}
+.drow label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px;min-width:0}
+textarea{width:100%;min-height:90px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;color:inherit;resize:vertical}
+.weeknav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.weeknav b{font:600 18px/1.1 var(--display)}
+.sesbar{display:flex;gap:8px;flex-wrap:wrap}
+.sesbar button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 12px;text-align:left;font-size:14px;line-height:1.25}
+.sesbar button b{font:700 17px/1 var(--display);display:block}
+.sesbar button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
+header h1{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+header h1{white-space:nowrap}
+@media (max-width:420px){header{gap:10px}header h1{font-size:22px}header .sync{font-size:12px;gap:6px}header .logo{width:34px;height:34px}}
+header .logo{width:38px;height:38px;border-radius:22%;flex:0 0 auto;display:block;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+body.kiosk nav.tabs,body.kiosk #reload{display:none}
+body.kiosk main{padding-bottom:32px}
+.card .badge.done{background:var(--ok);font-size:28px}
+.card.voted{opacity:.55}
+.kiosk-head{display:flex;flex-direction:column;gap:4px;text-align:center}
+.kiosk-head h2{margin:0;font:700 30px/1.05 var(--display);text-transform:uppercase;letter-spacing:.02em}
+body{background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 800' preserveAspectRatio='xMidYMid slice'><g fill='none' stroke='%23ff4b97' stroke-opacity='.28' stroke-width='16' stroke-linecap='round'><path d='M-60 330C90 270 300 380 460 300'/><path d='M110-40C40 220 70 520 190 840'/><path d='M340-40C430 250 390 540 290 840'/><circle cx='200' cy='420' r='340'/></g></svg>") center/cover no-repeat,radial-gradient(120% 80% at 25% 15%,#e2186f 0%,#a3124b 38%,#6a0a2e 72%,#3d0519 100%);background-color:#5e0828;background-attachment:fixed;min-height:100%}
+body.kiosk .kiosk-head,body.kiosk .kiosk-head .note{color:#fff}
+body.kiosk .kiosk-head h2{text-shadow:0 2px 6px rgba(0,0,0,.35)}
+body.kiosk .card{border-color:rgba(255,255,255,.5);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+body.kiosk .card.voted{opacity:.7}
+body.kiosk .banner,body.kiosk .empty{color:#fff}
+/* Todo lo que va directamente sobre el fondo de balón, en blanco; las tarjetas y paneles mantienen sus colores. */
+main>.note,main>.row .label,main>.row .note,main>.empty,.day h3,.weeknav b,main>.kiosk-head,main>.kiosk-head .note{color:#fff}
+main>.btn,main>.weeknav .btn.ghost{background:#fff;color:#7a0b35;border-color:#fff}
+main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
+.panel,.card,.wrow,.kpi,.ses,.ph-row{box-shadow:0 3px 12px rgba(0,0,0,.22)}
+.tmr{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.tmr .clock{font:700 30px/1 var(--display);min-width:84px}
+.tmr.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.tmr.on .clock{color:var(--accent)}
+.live{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 3px 12px rgba(0,0,0,.22)}
+.live.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent),0 3px 12px rgba(0,0,0,.22)}
+.lhead{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:8px}
+.lhead input{width:100%;background:transparent;border:1px solid transparent;border-radius:8px;padding:4px 6px}
+.lhead input:focus{border-color:var(--line);background:var(--surface-2)}
+.lname{font:700 26px/1.1 var(--display);text-transform:uppercase}
+.lpist{font:600 17px/1.1 var(--display);color:var(--muted);text-align:right}
+.lrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.live .clock{font:700 52px/1 var(--display)}
+.live.on .clock{color:var(--accent)}
+.btn.big{font-size:24px;padding:16px 26px;min-width:150px}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font:inherit}
+.erow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--surface-2);border-radius:10px;padding:8px 10px}
+.erow .en{min-width:0;font-weight:500}
+.erow .em{font:600 18px/1 var(--display)}
+.confirm{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;text-align:center}
+.confirm .big{width:96px;height:96px;border-radius:20px;display:grid;place-items:center;font:700 60px/1 var(--display);color:#fff}
+@media (max-width:420px){nav.tabs button{font-size:12px;letter-spacing:.02em;padding-inline:2px}.drow .wide{grid-column:1/-1}.drow .half{grid-column:span 3}.wrow{grid-template-columns:minmax(0,1fr) 80px 60px}.wrow .imc{display:none}}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:active{transform:scale(.97)}}
+</style>
+
+<div class="app">
+  <header>
+    <img class="logo" alt="" src="data:image/jpeg;base64,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">
+    <h1 id="title">Amara Lleida U22</h1>
+    <div class="sync"><span id="syncTxt">Conectando con la hoja…</span><button id="reload" type="button">Actualizar</button></div>
+  </header>
+  <main id="main">
+    <div class="empty">Cargando los datos de la hoja U22…</div>
+  </main>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="horario" aria-selected="false">Horario</button>
+    <button role="tab" data-tab="sesion" aria-selected="true">Sesión</button>
+    <button role="tab" data-tab="carga" aria-selected="false">Carga</button>
+    <button role="tab" data-tab="pesos" aria-selected="false">Pesos</button>
+    <button role="tab" data-tab="entrenos" aria-selected="false">Entrenos</button>
+    <button role="tab" data-tab="equipo" aria-selected="false">Equipo</button>
+  </nav>
+</div>
+<div id="sheetHost"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+const SID="1OktRl-PofOIF0I65JTSGj5BfSKHqC6UrW1MMm3pzTZ4";
+const GS="Google Sheets";
+const LOAD_TABS=["ALEXIS","PAU","BRU","ROGER","KASPAR"];
+const RPE_NAMES=["Roger","Bru","Kaspar","Alexis","Baba","Pau"];
+/* Practice 3 = entreno con el equipo ACB: solo lo hacen estos jugadores. Minutos en BD TIEMPO E; en las pestañas de jugador O = RPE P3, P = minutos P3. */
+const ACB_PLAYERS=["Pau","Alexis"];
+const TCOL={1:"B",2:"C",3:"E"};
+function playersFor(p){return p===3?S.players.filter(n=>ACB_PLAYERS.includes(n)):S.players}
+function minOf(t,p){return t?(p===1?t.p1:p===2?t.p2:t.p3):null}
+const BORG=["","Muy muy suave","Muy suave","Suave","Moderado","Algo duro","Duro","Muy duro","Muy muy duro","Casi máximo","Máximo"];
+const RPE_COL=["","#3d8fb8","#3a9aa0","#3fa27f","#5fa851","#93a83c","#c79a26","#d97d24","#d65a25","#c63a2a","#9e1f2a"];
+
+const S={tab:"sesion",date:isoToday(),practice:1,mcp:null,db:null,assets:null,
+  rpe:{rows:[],next:2,loaded:false},tiempo:{byDM:{},loaded:false},pesos:null,panel:null,
+  loads:{},loadTab:"ALEXIS",photos:{},players:RPE_NAMES.slice(),err:null,pesoDate:isoToday(),
+  horario:{rows:[],next:2,loaded:false},week:mondayOf(isoToday()),draft:null,reading:false,readMsg:"",sample:null,imgOK:false,practiceSet:false,kiosk:false,ent:{rows:[],next:2,loaded:false,date:isoToday(),ses:1,mode:"plan",draft:null,removed:[],reading:false,msg:"",text:"",fname:"",saving:false}};
+function mondayOf(iso){const d=new Date(iso+"T12:00:00");const k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return toIso(d)}
+function toIso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function addDays(iso,n){const d=new Date(iso+"T12:00:00");d.setDate(d.getDate()+n);return toIso(d)}
+function plannedFor(iso){return S.horario.rows.filter(r=>r.iso===iso).sort((a,b)=>a.prac-b.prac||String(a.hora).localeCompare(String(b.hora)))}
+
+function isoToday(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function parseDMY(s){if(!s)return null;const m=String(s).trim().match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);if(!m)return null;
+  let y=m[3]?+m[3]:null;if(y&&y<100)y+=2000;return {d:+m[1],m:+m[2],y}}
+function dmyToIso(s){const p=parseDMY(s);if(!p||!p.y)return null;return p.y+"-"+String(p.m).padStart(2,"0")+"-"+String(p.d).padStart(2,"0")}
+function isoToDMY(iso){const [y,m,d]=iso.split("-");return d+"/"+m+"/"+y}
+function isoToDM(iso){const [,m,d]=iso.split("-");return d+"/"+m}
+function num(v){if(v===undefined||v===null||v==="")return null;const n=parseFloat(String(v).replace(/\s/g,"").replace(",","."));return isNaN(n)?null:n}
+function fmt(n,dec=1){return n==null?"–":n.toLocaleString("es-ES",{minimumFractionDigits:dec,maximumFractionDigits:dec})}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function slug(s){return s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-")}
+function colLetter(i){let s="";i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s}
+function niceDate(iso){const d=new Date(iso+"T12:00:00");return d.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"})}
+let toastT;function toast(t){const el=document.getElementById("toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2600)}
+function setSync(t){document.getElementById("syncTxt").textContent=t}
+
+function errText(e){
+  const c=e&&e.code;
+  if(c==="server_not_connected")return "Falta la dirección del Apps Script de la hoja en config.js.";
+  if(c==="needs_reauth")return "La clave de la app no es correcta. Escríbela otra vez.";
+  if(c==="approval_required"||c==="not_in_manifest"||c==="consent_required")return "La app necesita tu permiso para usar Google Sheets. Pulsa Actualizar y acepta el aviso.";
+  if(c==="selection_required")return "Tienes más de una conexión de Google Sheets. Elige una en el aviso de claude.ai.";
+  if(c==="blocked_by_policy")return "Tu organización bloquea Google Sheets para esta app.";
+  if(c==="server_unavailable")return "Google Sheets no responde ahora mismo. Prueba de nuevo en un momento.";
+  if(c==="tool_error")return "Google Sheets rechazó la operación: "+(e.message||"").slice(0,160);
+  return "No se pudo hablar con Google Sheets ("+(c||"error")+").";
+}
+
+async function sget(range){
+  const r=await S.mcp.callTool(GS,"get_values",{spreadsheetId:SID,range},{cache:false});
+  const p=r.payload;return (p&&p.values)||[];
+}
+async function sset(range,values){await S.mcp.callTool(GS,"update_values",{spreadsheetId:SID,range,values})}
+
+/* RPE es un IMPORTRANGE de la hoja antigua: nunca se escribe ahí (pisarlo da #REF!). Lo nuevo va a RPE NUEVOS, que 'RPE App' lee primero. */
+const RPE_NEW="'RPE NUEVOS'";
+async function loadRPE(){
+  const [old,nu]=await Promise.all([sget("RPE!A1:E3000"),sget(RPE_NEW+"!A1:E3000")]);
+  const map=src=>(r,i)=>({src,row:i+1,name:(r[1]||"").trim(),val:num(r[2]),iso:dmyToIso(r[3]),prac:(r[4]||"").trim()});
+  S.rpe.rows=old.map(map("old")).slice(1).concat(nu.map(map("new")).slice(1));
+  S.rpe.next=Math.max(2,nu.length+1);S.rpe.loaded=true;
+  const extra=[...new Set(S.rpe.rows.map(r=>r.name).filter(Boolean))].filter(n=>!S.players.includes(n));
+  S.players=S.players.concat(extra);
+}
+async function loadTiempo(){
+  const rows=await sget("'BD TIEMPO'!A1:E500");const by={};
+  rows.forEach((r,i)=>{const p=parseDMY(r[0]);if(p){by[String(p.d).padStart(2,"0")+"/"+String(p.m).padStart(2,"0")]={row:i+1,p1:num(r[1]),p2:num(r[2]),p3:num(r[4])}}});
+  S.tiempo.byDM=by;S.tiempo.loaded=true;
+}
+async function loadPesos(){
+  S.pesos=await sget("PESOS!A1:Z40");
+  S.panel=await sget("'PANEL PESOS'!A5:I40");
+}
+async function loadLoad(tab){S.loads[tab]=await sget(tab+"!A1:P500")}
+async function loadHorario(){
+  const rows=await sget("HORARIO!A1:F500");
+  S.horario.rows=rows.map((r,i)=>({row:i+1,iso:dmyToIso(r[0]),prac:num(r[1])||1,hora:(r[2]||"").trim(),tipo:(r[3]||"").trim(),min:num(r[4]),notas:(r[5]||"").trim()})).slice(1).filter(r=>r.iso);
+  S.horario.next=Math.max(2,rows.length+1);S.horario.loaded=true;
+}
+function pickPractice(){
+  if(S.practiceSet)return;const ses=plannedFor(S.date);if(!ses.length)return;
+  const open=ses.find(s=>S.players.some(n=>{const f=findRPE(n,S.date,s.prac);return !f||f.pending}));
+  S.practice=(open||ses[0]).prac===2?2:1;
+}
+
+async function loadAll(){
+  setSync("Leyendo la hoja…");S.err=null;render();
+  try{
+    await Promise.all([loadRPE(),loadTiempo(),loadHorario().catch(()=>{S.horario.loaded=true})]);
+    pickPractice();render();
+    await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null]);
+    const t=new Date();setSync("Hoja al día · "+t.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}));
+  }catch(e){S.err=errText(e);setSync("Sin conexión con la hoja")}
+  render();
+}
+
+function findRPE(name,iso,p){
+  const lab="Practice "+p;
+  const exact=S.rpe.rows.filter(r=>r.name===name&&r.iso===iso&&r.prac===lab);
+  if(exact.length)return {rec:exact[exact.length-1],pending:false};
+  const loose=S.rpe.rows.filter(r=>r.name===name&&r.iso===iso&&!r.prac);
+  if(loose.length)return {rec:loose[loose.length-1],pending:true};
+  return null;
+}
+
+async function saveRPE(name,val){
+  const iso=S.date,p=S.practice,f=findRPE(name,iso,p);
+  const card=document.querySelector('[data-player="'+CSS.escape(name)+'"]');card&&card.classList.add("saving");
+  try{
+    if(f&&f.rec.src==="new"){
+      await sset(RPE_NEW+"!C"+f.rec.row+":E"+f.rec.row,[[val,isoToDMY(iso),"Practice "+p]]);
+      f.rec.val=val;f.rec.prac="Practice "+p;
+    }else{
+      const n=S.rpe.next;const now=new Date();
+      const ts=isoToDMY(isoToday())+" "+now.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+      await sset(RPE_NEW+"!A"+n+":E"+n,[[ts,name,val,isoToDMY(iso),"Practice "+p]]);
+      S.rpe.rows.push({src:"new",row:n,name,val,iso,prac:"Practice "+p});S.rpe.next=n+1;
+    }
+    toast(S.kiosk?"Guardado. Gracias, "+name:name+": RPE "+val+" guardado");
+    S.loads={};
+  }catch(e){toast(errText(e))}
+  render();
+}
+
+async function saveTiempo(min){
+  const dm=isoToDM(S.date),t=S.tiempo.byDM[dm];
+  if(!t){toast("Esa fecha no está en BD TIEMPO. Añade la fila en la hoja.");return}
+  const col=TCOL[S.practice];
+  try{await sset("'BD TIEMPO'!"+col+t.row,[[min===null?"":min]]);t["p"+S.practice]=min;toast("Tiempo de sesión guardado");S.loads={}}
+  catch(e){toast(errText(e))}
+  render();
+}
+
+/* ---------- render ---------- */
+const main=document.getElementById("main");
+function render(){
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===S.tab?"true":"false"));
+  const banner=S.err?`<div class="banner bad"><div>${esc(S.err)}</div></div>`:"";
+  document.body.classList.toggle("kiosk",S.kiosk);
+  document.getElementById("title").textContent=S.kiosk?"RPE U22":"Amara Lleida U22";
+  if(S.kiosk)main.innerHTML=banner+viewKiosk()+`<div class="row" style="justify-content:center;margin-top:18px"><button type="button" class="btn ghost holdbtn" id="kioskOff"><span class="holdfill"></span><span class="holdtxt">← Volver</span></button></div>`;
+  else if(S.tab==="horario")main.innerHTML=banner+viewHorario();
+  else if(S.tab==="sesion")main.innerHTML=banner+viewSesion();
+  else if(S.tab==="carga")main.innerHTML=banner+viewCarga();
+  else if(S.tab==="pesos")main.innerHTML=banner+viewPesos();
+  else if(S.tab==="entrenos"){main.innerHTML=banner+viewEntrenos();entPersist()}
+  else main.innerHTML=banner+viewEquipo();
+  bind();
+}
+
+function avatar(name){
+  const ph=S.photos[slug(name)];
+  return ph?`<img src="${esc(ph)}" alt="Foto de ${esc(name)}">`:esc(name.slice(0,2).toUpperCase());
+}
+
+function viewSesion(){
+  const dm=isoToDM(S.date),t=S.tiempo.byDM[dm];const min=minOf(t,S.practice);const PL=playersFor(S.practice);
+  const plan=plannedFor(S.date);const cur=plan.find(s=>s.prac===S.practice);
+  const planBar=plan.length?`<div class="sesbar">${plan.map(s=>`<button type="button" data-pick="${s.prac}" aria-pressed="${s.prac===S.practice}"><b>P${s.prac}${s.hora?" · "+esc(s.hora):""}</b>${esc(s.tipo||"Sesión")}${s.min?" · "+s.min+" min":""}</button>`).join("")}</div>`
+    :(S.horario.rows.length?`<div class="note">No hay sesiones en el horario para este día.</div>`:"");
+  const planNote=(min==null&&cur&&cur.min)?`<div class="banner info">Previsto en el horario: ${cur.min} min. Confírmalo o cámbialo y pulsa Guardar tiempo.</div>`:"";
+  const head=`<div class="panel">${planBar}
+    <div class="row" style="justify-content:space-between">
+      <div class="field"><label class="label" for="fecha">Fecha</label><input id="fecha" type="date" value="${S.date}"></div>
+      <div class="field"><span class="label">Sesión</span><div class="seg" role="group">
+        <button type="button" data-prac="1" aria-pressed="${S.practice===1}">Practice 1</button>
+        <button type="button" data-prac="2" aria-pressed="${S.practice===2}">Practice 2</button>
+        <button type="button" data-prac="3" aria-pressed="${S.practice===3}">P3 · ACB</button></div></div>
+    </div>
+    <div class="row">
+      <div class="field" style="flex:1"><label class="label" for="minutos">Tiempo de sesión (min)</label>
+        <input id="minutos" type="number" inputmode="numeric" min="0" max="300" step="5" value="${min??(cur&&cur.min?cur.min:"")}" placeholder="${t?"Sin apuntar":"Fecha fuera de BD TIEMPO"}"></div>
+      <button class="btn" id="saveMin" type="button" style="align-self:flex-end">Guardar tiempo</button>
+    </div>${planNote}
+    <div class="note">${esc(niceDate(S.date))}</div>
+  </div>`;
+  if(!S.rpe.loaded)return head+`<div class="empty">Leyendo los RPE de la hoja…</div>`;
+  const done=PL.filter(n=>{const f=findRPE(n,S.date,S.practice);return f&&!f.pending}).length;
+  const noMin=(min==null||min===0)&&done>0?`<div class="banner warn">Hay RPE de esta sesión pero falta el tiempo. Sin minutos la carga del día cuenta como 0.</div>`:"";
+  const cards=PL.map(n=>{
+    const f=findRPE(n,S.date,S.practice);
+    let badge="";
+    if(f&&!f.pending)badge=`<span class="badge" style="background:${RPE_COL[Math.round(f.rec.val)]||"#666"}">${f.rec.val}</span>`;
+    else if(f&&f.pending)badge=`<span class="badge pending">${f.rec.val}<br>sin P</span>`;
+    return `<button class="card" type="button" data-player="${esc(n)}"><div class="photo">${avatar(n)}</div><div class="name">${esc(n)}</div>${badge}</button>`;
+  }).join("");
+  const kioskBtn=`<button class="btn" id="kioskOn" type="button">Pasar a jugadores</button><div class="note">Los jugadores solo verán sus fotos y la escala. Para volver, toca "Volver" abajo del todo.</div>`;
+  return head+noMin+kioskBtn+`<div class="row" style="justify-content:space-between"><span class="label">RPE · Practice ${S.practice}</span><span class="note num">${done} de ${PL.length} apuntados</span></div><div class="grid">${cards}</div>`;
+}
+
+/* Modo jugador: el móvil pasa de mano en mano; nadie ve el RPE de los demás ni sale de esta pantalla. */
+function viewKiosk(){
+  const head=`<div class="kiosk-head"><h2>¿Cómo de dura ha sido la sesión?</h2><div class="note">Practice ${S.practice}${S.practice===3?" · ACB":""} · ${esc(niceDate(S.date))}</div><div class="note">Toca tu foto</div></div>`;
+  if(!S.rpe.loaded)return head+`<div class="empty">Leyendo la hoja…</div>`;
+  const cards=playersFor(S.practice).map(n=>{
+    const f=findRPE(n,S.date,S.practice);const voted=f&&!f.pending;
+    return `<button class="card${voted?" voted":""}" type="button" data-player="${esc(n)}"><div class="photo">${avatar(n)}</div><div class="name">${esc(n)}</div>${voted?`<span class="badge done" aria-label="Ya votado">✓</span>`:""}</button>`;
+  }).join("");
+  return head+`<div class="grid">${cards}</div>`;
+}
+
+function openKioskScale(name){
+  const host=document.getElementById("sheetHost");
+  const f=findRPE(name,S.date,S.practice);
+  const close=()=>host.innerHTML="";
+  const shell=inner=>{host.innerHTML=`<div class="sheet-bg" id="sbg"><div class="sheet" role="dialog" aria-label="RPE de ${esc(name)}">
+    <div class="row" style="justify-content:space-between"><h2>${esc(name)}</h2><button class="btn ghost" id="closeS" type="button">Cerrar</button></div>${inner}</div></div>`;
+    host.querySelector("#closeS").onclick=close;host.querySelector("#sbg").onclick=e=>{if(e.target.id==="sbg")close()}};
+  if(f&&!f.pending){shell(`<div class="note">Ya has puesto tu RPE de esta sesión. Si te has equivocado, díselo a tu entrenador.</div>`);return}
+  const pick=()=>{
+    shell(`<div class="note">Practice ${S.practice} · ${esc(niceDate(S.date))}</div>
+      <div class="scale">${[10,9,8,7,6,5,4,3,2,1].map(v=>`<button type="button" data-v="${v}"><span class="n" style="background:${RPE_COL[v]}">${v}</span><span class="t">${BORG[v]}</span></button>`).join("")}</div>`);
+    host.querySelectorAll(".scale button").forEach(b=>b.onclick=()=>confirm(+b.dataset.v));
+  };
+  const confirm=v=>{
+    shell(`<div class="confirm"><span class="big" style="background:${RPE_COL[v]}">${v}</span><b>${BORG[v]}</b><div class="note">¿Es correcto?</div>
+      <div class="row" style="justify-content:center"><button class="btn ghost" id="back" type="button">Cambiar</button><button class="btn" id="ok" type="button">Guardar</button></div></div>`);
+    host.querySelector("#back").onclick=pick;
+    host.querySelector("#ok").onclick=()=>{close();saveRPE(name,v)};
+  };
+  pick();
+}
+
+function openScale(name){
+  const f=findRPE(name,S.date,S.practice);const cur=f?f.rec.val:null;
+  const host=document.getElementById("sheetHost");
+  host.innerHTML=`<div class="sheet-bg" id="sbg"><div class="sheet" role="dialog" aria-label="RPE de ${esc(name)}">
+    <div class="row" style="justify-content:space-between"><h2>${esc(name)}</h2><button class="btn ghost" id="closeS" type="button">Cerrar</button></div>
+    <div class="note">Practice ${S.practice} · ${esc(niceDate(S.date))}${f&&f.pending?" · ya tenía un "+cur+" sin sesión asignada":""}</div>
+    ${f&&!f.pending?(f.rec.src==="new"?`<button class="btn ghost" id="delR" type="button">Quitar este RPE</button>`:`<div class="note">Este RPE viene de la hoja antigua (pestaña RPE): para quitarlo, bórralo allí, en AppSheet.</div>`):""}
+    <div class="scale">${[10,9,8,7,6,5,4,3,2,1].map(v=>`<button type="button" data-v="${v}" aria-pressed="${cur===v}"><span class="n" style="background:${RPE_COL[v]}">${v}</span><span class="t">${BORG[v]}</span></button>`).join("")}</div>
+  </div></div>`;
+  const close=()=>host.innerHTML="";
+  host.querySelector("#closeS").onclick=close;
+  host.querySelector("#sbg").onclick=e=>{if(e.target.id==="sbg")close()};
+  host.querySelectorAll(".scale button").forEach(b=>b.onclick=()=>{close();saveRPE(name,+b.dataset.v)});
+  const dr=host.querySelector("#delR");if(dr)dr.onclick=()=>{close();deleteRPE(name,f.rec)};
+}
+
+async function deleteRPE(name,rec){
+  try{
+    await sset(RPE_NEW+"!A"+rec.row+":E"+rec.row,[["","","","",""]]);
+    S.rpe.rows=S.rpe.rows.filter(r=>r!==rec);S.loads={};
+    toast("RPE de "+name+" quitado");
+  }catch(e){toast(errText(e))}
+  render();
+}
+
+function viewCarga(){
+  const chips=`<div class="chips">${LOAD_TABS.map(t=>`<button type="button" data-load="${t}" aria-pressed="${S.loadTab===t}">${t.charAt(0)+t.slice(1).toLowerCase()}</button>`).join("")}</div>`;
+  const rows=S.loads[S.loadTab];
+  if(!rows)return chips+`<div class="empty">Leyendo la pestaña ${S.loadTab}…</div>`;
+  const today=S.date;
+  const data=rows.slice(1).map(r=>({iso:dmyToIso(r[1]),r1:num(r[2])||0,r2:num(r[3])||0,t1:num(r[4])||0,t2:num(r[5])||0,r3:num(r[14])||0,t3:num(r[15])||0,load:num(r[7])||0,acute:num(r[8]),chronic:num(r[9]),acwr:num(r[10])}))
+    .filter(d=>d.iso&&d.iso<=today);
+  const last=data.slice(-28);
+  if(!last.length)return chips+`<div class="empty">No hay días registrados hasta ${esc(isoToDMY(today))}.</div>`;
+  S.chartLast=last;
+  const cur=last[last.length-1];
+  const missing=last.filter(d=>(d.r1>0&&d.t1===0)||(d.r2>0&&d.t2===0)||(d.r3>0&&d.t3===0));
+  const zone=cur.acwr==null?null:cur.acwr<0.8?["warn","Baja"]:cur.acwr<=1.3?["ok","Óptima"]:cur.acwr<=1.5?["warn","Alta"]:["bad","Peligro"];
+  const wk=data.slice(-7).reduce((a,d)=>a+d.load,0);
+  const warn=missing.length?`<div class="banner warn"><div><b>${missing.length} días con RPE pero sin minutos</b> en las últimas 4 semanas (${missing.slice(-6).map(d=>isoToDM(d.iso)).join(", ")}${missing.length>6?"…":""}). Esos días cuentan como carga 0, así que el ACWR sale más bajo de lo real. Apunta el tiempo en Sesión.</div></div>`:"";
+  return chips+warn+`<div class="kpis">
+    <div class="kpi"><span class="label">ACWR hoy</span><b>${fmt(cur.acwr,2)}</b>${zone?`<span class="pill ${zone[0]}">${zone[1]}</span>`:""}</div>
+    <div class="kpi"><span class="label">Carga 7 días</span><b>${Math.round(wk).toLocaleString("es-ES")}</b><span class="note">UA (RPE × min)</span></div>
+    <div class="kpi"><span class="label">Aguda / crónica</span><b style="font-size:24px">${fmt(cur.acute,0)} / ${fmt(cur.chronic,0)}</b><span class="note">EWMA 7 / 28 días</span></div>
+  </div>
+  <div class="panel"><span class="label">Carga diaria · últimos 28 días</span><div class="chartbox" data-chart="load">${barChart(last)}</div></div>
+  <div class="panel"><span class="label">ACWR · franja 0,8–1,3</span><div class="chartbox" data-chart="acwr">${acwrChart(last)}</div></div>`;
+}
+
+function barChart(d){
+  const W=640,H=200,L=40,B=26,T=10;const max=Math.max(100,...d.map(x=>x.load));const step=niceStep(max);const top=Math.ceil(max/step)*step;
+  const bw=(W-L-8)/d.length;const y=v=>T+(H-T-B)*(1-v/top);
+  let g="";for(let v=0;v<=top;v+=step)g+=`<line x1="${L}" x2="${W-4}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+  const bars=d.map((x,i)=>{const h=(H-T-B)-(y(x.load)-T);const miss=(x.r1>0&&x.t1===0)||(x.r2>0&&x.t2===0)||(x.r3>0&&x.t3===0);
+    return `<rect data-i="${i}" x="${L+i*bw+2}" y="${y(x.load)}" width="${Math.max(2,bw-4)}" height="${Math.max(0,h)}" rx="3" fill="${miss?"var(--warn)":"var(--accent)"}"></rect>`+
+      (miss&&x.load===0?`<circle cx="${L+i*bw+bw/2}" cy="${y(0)-5}" r="3" fill="var(--warn)"/>`:"")}).join("");
+  const lab=d.map((x,i)=>i%7===0||i===d.length-1?`<text x="${L+i*bw+bw/2}" y="${H-8}" text-anchor="middle">${isoToDM(x.iso)}</text>`:"").join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:420px" role="img" aria-label="Carga diaria">${g}${bars}${lab}</svg>`;
+}
+function acwrChart(d){
+  const W=640,H=180,L=40,B=26,T=10;const vals=d.map(x=>x.acwr).filter(v=>v!=null);const top=Math.max(2,Math.ceil(Math.max(...vals,0)*2)/2);
+  const bw=(W-L-8)/d.length;const y=v=>T+(H-T-B)*(1-v/top);const x=i=>L+i*bw+bw/2;
+  let g=`<rect x="${L}" y="${y(1.3)}" width="${W-L-4}" height="${y(0.8)-y(1.3)}" fill="var(--ok-soft)"/>`;
+  for(let v=0;v<=top+1e-9;v+=0.5)g+=`<line x1="${L}" x2="${W-4}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${fmt(v,1)}</text>`;
+  const pts=d.map((p,i)=>p.acwr==null?null:[x(i),y(Math.min(p.acwr,top))]).filter(Boolean);
+  const path=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const lp=pts[pts.length-1];
+  const lab=d.map((p,i)=>i%7===0||i===d.length-1?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${isoToDM(p.iso)}</text>`:"").join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:420px" role="img" aria-label="ACWR">${g}<path d="${path}" fill="none" stroke="var(--fg)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${lp?`<circle cx="${lp[0]}" cy="${lp[1]}" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`:""}${lab}</svg>`;
+}
+/* Tocar o pasar el ratón por un gráfico: muestra día y valor de la barra/punto más cercano (mismas medidas que barChart/acwrChart). */
+function bindCharts(){
+  document.querySelectorAll(".chartbox[data-chart]").forEach(box=>{
+    const svg=box.querySelector("svg");const d=S.chartLast;if(!svg||!d||!d.length)return;
+    const kind=box.dataset.chart,W=640,L=40,bw=(W-L-8)/d.length;let tip=null;
+    const show=e=>{
+      const r=svg.getBoundingClientRect();const vx=(e.clientX-r.left)/r.width*W;
+      const i=Math.max(0,Math.min(d.length-1,Math.floor((vx-L)/bw)));const x=d[i];
+      if(!tip){tip=document.createElement("div");tip.className="ctip";box.appendChild(tip)}
+      const day=new Date(x.iso+"T12:00:00").toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"numeric"});
+      const ses=[[1,x.r1,x.t1],[2,x.r2,x.t2],[3,x.r3,x.t3]].filter(q=>q[1]||q[2]).map(q=>`P${q[0]}${q[0]===3?" ACB":""}: RPE ${q[1]?fmt(q[1],0):"–"} · ${q[2]?fmt(q[2],0)+" min":"sin minutos"}`);
+      tip.innerHTML=kind==="load"?`<b>${esc(day)}</b>${ses.length?ses.map(esc).join("<br>"):"Sin sesión"}`:`<b>ACWR ${fmt(x.acwr,2)}</b>${esc(day)}`;
+      const px=(L+i*bw+bw/2)/W*r.width+(r.left-box.getBoundingClientRect().left)+box.scrollLeft;
+      tip.style.left=Math.max(50,Math.min(box.scrollWidth-50,px))+"px";
+      svg.querySelectorAll("rect[data-i]").forEach(b=>b.classList.toggle("dim",+b.dataset.i!==i));
+    };
+    svg.addEventListener("pointermove",show);svg.addEventListener("pointerdown",show);
+    svg.addEventListener("pointerleave",e=>{if(e.pointerType!=="mouse")return;if(tip){tip.remove();tip=null}svg.querySelectorAll("rect.dim").forEach(b=>b.classList.remove("dim"))});
+  });
+}
+function niceStep(m){const r=m/4;const p=Math.pow(10,Math.floor(Math.log10(r)));const f=r/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p}
+
+function spark(vals){
+  const v=vals.map((n,i)=>[i,n]).filter(p=>p[1]!=null);if(v.length<2)return "";
+  const base=v[0][1],W=92,H=30,n=vals.length-1||1;const y=k=>H/2-(k-base)/5*(H/2-3);
+  return `<svg viewBox="0 0 ${W} ${H}" width="92" height="30" aria-hidden="true"><line x1="0" x2="${W}" y1="${H/2}" y2="${H/2}" stroke="var(--line)" stroke-dasharray="3 3"/><path d="${v.map((p,i)=>(i?"L":"M")+(p[0]/n*(W-6)+3).toFixed(1)+" "+y(p[1]).toFixed(1)).join(" ")}" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>`;
+}
+
+function viewPesos(){
+  if(!S.pesos)return `<div class="empty">Leyendo la pestaña PESOS…</div>`;
+  const hdr=S.pesos[0]||[];const dm=isoToDM(S.pesoDate);
+  let col=hdr.findIndex((h,i)=>i>=2&&String(h).trim()===dm);
+  const exists=col>=2;
+  const players=S.pesos.slice(1).map((r,i)=>({row:i+2,name:r[0],vals:r.slice(2).map(num),cur:exists?num(r[col]):null})).filter(p=>p.name);
+  const panel={};(S.panel||[]).forEach(r=>{if(r[0])panel[r[0]]=r});
+  const list=players.map(p=>{const pr=panel[p.name]||[];const pct=num(String(pr[6]||"").replace("%",""));
+    const cls=pct==null?"":Math.abs(pct)>=5?"bad":Math.abs(pct)>=3?"warn":"";
+    return `<div class="wrow"><div style="min-width:0"><div class="nm">${esc(p.name)}</div><div class="sub">${esc(pr[3]||"–")} kg · ${esc(pr[4]||"")}</div></div>
+      <div>${spark(p.vals)}</div><div class="pct ${cls?"":""}" style="color:${cls==="bad"?"var(--bad)":cls==="warn"?"var(--warn)":"var(--fg)"}">${esc(pr[6]||"")}</div><div class="sub imc" style="text-align:right">IMC<br><span class="num" style="color:var(--fg)">${esc(pr[8]||"–")}</span></div></div>`}).join("");
+  const form=players.map(p=>`<div class="inrow"><label for="w-${p.row}">${esc(p.name)}</label><input id="w-${p.row}" data-row="${p.row}" type="text" inputmode="decimal" placeholder="kg" value="${p.cur==null?"":String(p.cur).replace(".",",")}"></div>`).join("");
+  return `<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Evolución desde el primer pesaje</span><span class="note">naranja ≥3 %, rojo ≥5 %</span></div><div class="list">${list}</div></div>
+  <div class="panel"><span class="label">${exists?"Corregir pesaje":"Nuevo pesaje"}</span>
+    <div class="field"><label class="label" for="pdate">Fecha</label><input id="pdate" type="date" value="${S.pesoDate}"></div>
+    <div class="note">${exists?"Ya hay una columna "+esc(dm)+" en PESOS: al guardar se sobrescribe.":"Se creará la columna "+esc(dm)+" en PESOS. Deja vacío quien no se pese."}</div>
+    <div class="list">${form}</div><button class="btn" id="savePeso" type="button">Guardar pesaje</button></div>`;
+}
+
+async function savePesos(){
+  const hdr=S.pesos[0]||[];const dm=isoToDM(S.pesoDate);
+  let col=hdr.findIndex((h,i)=>i>=2&&String(h).trim()===dm);
+  if(col<2){col=2;while(hdr[col]&&String(hdr[col]).trim()!=="")col++}
+  if(col>25){toast("No queda sitio en PESOS (máximo columna Z).");return}
+  const inputs=[...document.querySelectorAll("input[data-row]")];const maxRow=Math.max(...inputs.map(i=>+i.dataset.row));
+  const vals=[["'"+dm]];for(let r=2;r<=maxRow;r++){const inp=inputs.find(i=>+i.dataset.row===r);const v=inp?num(inp.value):null;
+    if(inp&&inp.value.trim()!==""&&v==null){toast("Peso no válido para "+inp.previousElementSibling.textContent);return}
+    vals.push([v==null?"":v])}
+  const L=colLetter(col);const btn=document.getElementById("savePeso");btn.disabled=true;
+  try{await sset("PESOS!"+L+"1:"+L+maxRow,vals);toast("Pesaje del "+dm+" guardado");await loadPesos()}catch(e){toast(errText(e))}
+  render();
+}
+
+function sesStatus(s){
+  const done=S.players.filter(n=>{const f=findRPE(n,s.iso,s.prac);return f&&!f.pending}).length;
+  const t=S.tiempo.byDM[isoToDM(s.iso)];const m=minOf(t,s.prac);
+  const past=s.iso<=isoToday();
+  const rpe=done?`<span class="pill ${done>=S.players.length?"ok":"warn"}">RPE ${done}/${S.players.length}</span>`:(past?`<span class="pill warn">Sin RPE</span>`:"");
+  const min=m!=null&&m>0?`<span class="note">${m} min confirmados</span>`:(past?`<span class="pill ${s.min?"warn":"bad"}">${s.min?"Minutos sin confirmar":"Sin minutos"}</span>`:(s.min?`<span class="note">${s.min} min previstos</span>`:""));
+  return rpe+min;
+}
+function viewHorario(){
+  const wk=S.week,days=[...Array(7)].map((_,i)=>addDays(wk,i));const today=isoToday();
+  const end=addDays(wk,6);const lbl=new Date(wk+"T12:00:00").toLocaleDateString("es-ES",{day:"numeric",month:"short"})+" – "+new Date(end+"T12:00:00").toLocaleDateString("es-ES",{day:"numeric",month:"short"});
+  let body;
+  if(!S.horario.loaded)body=`<div class="empty">Leyendo la pestaña HORARIO…</div>`;
+  else{
+    const list=days.map(d=>{const ses=plannedFor(d);if(!ses.length)return "";
+      return `<div class="day"><h3>${esc(niceDate(d))}</h3>${ses.map(s=>`<button type="button" class="ses${d===today?" today":""}" data-go="${d}|${s.prac}"><span class="tag">P${s.prac}</span><span class="what"><b>${esc(s.tipo||"Sesión")}</b>${s.hora?" · "+esc(s.hora):""}${s.notas?`<br><span class="note">${esc(s.notas)}</span>`:""}</span><span class="st">${sesStatus(s)}</span></button>`).join("")}</div>`}).join("");
+    body=list||`<div class="empty">No hay sesiones guardadas para esta semana. Sube el horario aquí abajo.</div>`;
+  }
+  const canRead=!!S.sample;
+  const draft=S.draft?`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Revisa antes de guardar</span><span class="note">${S.draft.length} sesiones</span></div>
+    <div class="note">Comprueba fechas y si cada sesión es P1 o P2. Si una fecha ya tiene esa sesión en la hoja, se sobrescribe.</div>
+    <div class="list">${S.draft.map((d,i)=>`<div class="drow">
+      <label class="wide">Fecha<input type="date" id="d-f-${i}" data-dr="${i}" data-k="fecha" value="${esc(d.fecha||"")}"></label>
+      <label class="half" style="grid-column:span 2">Sesión<select id="d-s-${i}" data-dr="${i}" data-k="sesion"><option value="1"${d.sesion==2?"":" selected"}>Practice 1</option><option value="2"${d.sesion==2?" selected":""}>Practice 2</option></select></label>
+      <label style="grid-column:span 1">Hora<input type="text" id="d-h-${i}" data-dr="${i}" data-k="hora" value="${esc(d.hora||"")}" placeholder="18:00"></label>
+      <label class="wide">Tipo<input type="text" id="d-t-${i}" data-dr="${i}" data-k="tipo" value="${esc(d.tipo||"")}" placeholder="Pista"></label>
+      <label class="half">Min previstos<input type="number" inputmode="numeric" id="d-m-${i}" data-dr="${i}" data-k="minutos" value="${d.minutos??""}"></label>
+      <label style="grid-column:span 1;justify-content:flex-end"><button type="button" class="btn ghost" data-del="${i}" style="padding:8px 6px;font-size:14px">Quitar</button></label>
+      <label class="full">Notas<input type="text" id="d-n-${i}" data-dr="${i}" data-k="notas" value="${esc(d.notas||"")}"></label>
+    </div>`).join("")}</div>
+    <div class="row"><button type="button" class="btn ghost" id="addRow">Añadir sesión</button><button type="button" class="btn" id="saveDraft">Guardar en la hoja</button><button type="button" class="btn ghost" id="dropDraft">Descartar</button></div></div>`:"";
+  const upload=`<div class="panel"><span class="label">Subir el horario de la semana</span>
+    ${canRead?`<div class="note">Sube una foto o captura del horario${S.imgOK?"":" (en esta vista solo se puede pegar texto)"}, o pega el texto. La app lo lee y te deja revisarlo antes de guardar. Si es un PDF, haz una captura.</div>
+    ${S.imgOK?`<div class="row"><label class="btn ghost" for="hfile">Elegir foto</label><input id="hfile" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0"><span class="note" id="hname">${esc(S.hname||"")}</span></div>`:""}
+    <textarea id="htext" placeholder="Lunes 18:00–19:45 pista. Martes 17:00 gimnasio 45 min, 18:00 pista…">${esc(S.htext||"")}</textarea>
+    <div class="row"><button type="button" class="btn" id="readH"${S.reading?" disabled":""}>${S.reading?"Leyendo…":"Leer horario"}</button><button type="button" class="btn ghost" id="manual">Añadir a mano</button></div>
+    ${S.readMsg?`<div class="note">${esc(S.readMsg)}</div>`:""}`
+    :`<div class="note">La lectura automática no está disponible en esta vista. Puedes añadir las sesiones a mano.</div><div class="row"><button type="button" class="btn ghost" id="manual">Añadir a mano</button></div>`}</div>`;
+  return `<div class="weeknav"><button type="button" class="btn ghost" id="wprev" aria-label="Semana anterior">‹</button><b>${esc(lbl)}</b><button type="button" class="btn ghost" id="wnext" aria-label="Semana siguiente">›</button></div>`+body+draft+upload;
+}
+
+let pendingImg=null;
+async function shrink(file){
+  const img=await createImageBitmap(file);const k=Math.min(1,1800/Math.max(img.width,img.height));
+  const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+  c.getContext("2d").drawImage(img,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(r,"image/jpeg",0.88));
+}
+async function readHorario(){
+  const text=(document.getElementById("htext")||{}).value||"";S.htext=text;
+  if(!pendingImg&&!text.trim()){S.readMsg="Elige una foto o pega el texto del horario primero.";render();return}
+  const today=isoToday(),mon=mondayOf(today),dow=(new Date(today+"T12:00:00").getDay()+6)%7;
+  const target=dow>=4?addDays(mon,7):mon;
+  const prompt=`Eres el asistente de un preparador físico de un equipo de baloncesto U22 en España. Lee el horario semanal de entrenamientos${pendingImg?" de la imagen":""}${text.trim()?" y este texto:\n\n"+text.slice(0,6000)+"\n\n":". "}
+Hoy es ${today}. Si el horario no indica año, usa el año que deje las fechas más cerca de hoy. Si solo indica días de la semana sin fecha, usa la semana que empieza el lunes ${target}.
+Devuelve SOLO un array JSON. Un objeto por sesión de entrenamiento o partido, sin días de descanso:
+{"fecha":"YYYY-MM-DD","sesion":1 o 2,"hora":"HH:MM" o "","tipo":"texto corto tal como aparece (Pista, Gimnasio, Partido, Recuperación…)","minutos":duración en minutos si se puede deducir de inicio y fin o se indica, si no null,"notas":"detalles útiles, o vacío"}
+Vocabulario del club: "TARDE" es el entreno de equipo; "TEC" es tecnificación (tiro o táctica sin oposición, unos 90 min); "PF" es preparación física en gimnasio; "GERB", "Barris Nord" y "Cappont" son pabellones (van en notas, no en tipo).
+Regla de "sesion": 1 para TARDE, entreno de equipo o partido; 2 para TEC. Las PF no son una sesión aparte: añade "PF gimnasio HH:MM-HH:MM aparte" en las notas de la sesión 2 de ese día (o de la 1 si no hay sesión 2). Si un día pone que no hay entrenamiento U22, ignora esa línea, pero incluye cualquier otra sesión del mismo día y marca "Por confirmar" en notas si lo pone.
+Ejemplo: [{"fecha":"2026-10-21","sesion":1,"hora":"18:00","tipo":"Pista","minutos":105,"notas":""}]`;
+  S.reading=true;S.readMsg="Leyendo el horario, puede tardar hasta un minuto…";render();
+  try{
+    const opts={modelTier:"default"};if(pendingImg)opts.images=[pendingImg];
+    const out=await S.sample.json(prompt,opts);
+    const arr=Array.isArray(out)?out:[];
+    const clean=arr.map(o=>({fecha:/^\d{4}-\d{2}-\d{2}$/.test(o&&o.fecha)?o.fecha:"",sesion:(o&&+o.sesion===2)?2:1,hora:String(o&&o.hora||"").slice(0,5),tipo:String(o&&o.tipo||"").slice(0,40),minutos:Number.isFinite(+(o&&o.minutos))&&o.minutos!==null?Math.round(+o.minutos):null,notas:String(o&&o.notas||"").slice(0,120)}));
+    if(!clean.length){S.readMsg="No he encontrado sesiones en el horario. Prueba con una foto más nítida o añádelas a mano."}
+    else{S.draft=(S.draft||[]).concat(clean);S.readMsg="";S.htext="";S.hname="";pendingImg=null;if(clean[0].fecha)S.week=mondayOf(clean[0].fecha)}
+  }catch(e){
+    const c=e&&e.code;
+    S.readMsg=c==="not_granted"?"Has denegado el permiso para leer el horario. Puedes añadir las sesiones a mano."
+      :c==="invalid_json"?"No he podido entender el horario. Prueba con una foto más nítida o pega el texto."
+      :c==="image_rejected"||c==="images_unavailable"?"No se ha podido usar esa imagen. Prueba con una captura en JPG o PNG, o pega el texto."
+      :c==="rate_limited"?"Demasiadas lecturas seguidas. Espera un minuto y vuelve a probar."
+      :"No se ha podido leer el horario ("+(c||"error")+"). Puedes añadir las sesiones a mano.";
+  }
+  S.reading=false;render();
+}
+function syncDraft(){document.querySelectorAll("[data-dr]").forEach(el=>{const d=S.draft[+el.dataset.dr];if(!d)return;const k=el.dataset.k;
+  d[k]=k==="sesion"?+el.value:k==="minutos"?(el.value===""?null:Math.round(+el.value)):el.value})}
+async function saveDraft(){
+  syncDraft();const rows=S.draft.filter(d=>d.fecha);
+  if(rows.length!==S.draft.length){toast("Falta la fecha en alguna sesión");return}
+  const btn=document.getElementById("saveDraft");if(btn)btn.disabled=true;
+  try{
+    const fresh=[];
+    for(const d of rows){
+      const line=[isoToDMY(d.fecha),d.sesion,d.hora?"'"+d.hora:"",d.tipo,d.minutos==null?"":d.minutos,d.notas];
+      const ex=S.horario.rows.find(r=>r.iso===d.fecha&&r.prac===d.sesion);
+      if(ex)await sset("HORARIO!A"+ex.row+":F"+ex.row,[line]);else fresh.push(line);
+    }
+    if(fresh.length){const a=S.horario.next,b=a+fresh.length-1;await sset("HORARIO!A"+a+":F"+b,fresh)}
+    await loadHorario();S.draft=null;toast(rows.length+" sesiones guardadas en HORARIO");
+  }catch(e){toast(errText(e))}
+  render();
+}
+
+/* ---------- Entrenos: ejercicios por sesión en 'ENTRENOS DATOS' (A fecha, B sesión, C ejercicio, D minutos, H pistas, I notas antiguas).
+   E:G son ARRAYFORMULA en la hoja (oposición, min oposición, semana): nunca se escriben desde aquí. */
+const ENT="'ENTRENOS DATOS'";
+const isOpo=n=>/X[1-9]|RITME/i.test(String(n||""));
+function parseMin(v){const s=String(v??"").trim();if(!s)return null;const m=s.match(/^(\d+):(\d{1,2})$/);if(m)return +m[1]+(+m[2])/60;return num(s)}
+function fmtMin(n){if(n==null)return "";const m=Math.floor(n),s=Math.round((n-m)*60);return s===60?String(m+1):s?m+":"+String(s).padStart(2,"0"):String(m)}
+/* Pistas como las escribe Iñigo: 1/2 = HC, 1/2+1 = HC+FC, 1/2+2 = HC+2FC, 1 = FC; "1/2 + open basket" se deja tal cual. */
+function normPistas(v){const s=String(v||"").trim();const k=s.replace(/\s+/g,"").toLowerCase();
+  if(k==="1/2")return "HC";if(k==="1/2+1")return "HC+FC";if(k==="1/2+2")return "HC+2FC";if(k==="1")return "FC";return s.toUpperCase()}
+async function loadEntrenos(){
+  const [ad,hi]=await Promise.all([sget(ENT+"!A1:D3000"),sget(ENT+"!H1:I3000")]);
+  S.ent.rows=ad.map((r,i)=>({row:i+1,iso:dmyToIso(r[0]),ses:num(r[1])||1,ej:(r[2]||"").trim(),min:num(r[3]),pistas:((hi[i]||[])[0]||"").trim()})).slice(1).filter(r=>r.iso&&r.ej);
+  S.ent.next=Math.max(ad.length,hi.length,1)+1;S.ent.loaded=true;
+}
+function entFor(iso,ses){return S.ent.rows.filter(r=>r.iso===iso&&r.ses===ses)}
+function entTotals(list){const t=list.reduce((a,r)=>a+(r.min||0),0),o=list.reduce((a,r)=>a+(isOpo(r.ej)?(r.min||0):0),0);return {t,o,p:t?Math.round(o/t*100):0,sin:list.filter(r=>r.min==null).length}}
+function opoPill(name,i){const o=isOpo(name);return `<span class="pill ${o?"bad":"ok"}"${i!=null?` data-opo="${i}"`:""}>${o?"Oposición":"Sin oposición"}</span>`}
+
+/* Cronómetro por ejercicio: guarda marcas de tiempo (no cuenta ticks), así sigue bien aunque se bloquee el móvil o se recargue la página. */
+let entImg=null;
+const ENT_KEY="u22-ent-borrador";
+function elapsed(x){return (x.tAcc||0)+(x.tStart?Date.now()-x.tStart:0)}
+function clockText(x){const t=Math.floor(elapsed(x)/1000);return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")}
+function stopTimer(x){if(!x.tStart)return;x.tAcc=elapsed(x);x.tStart=null;x.minutos=fmtMin(Math.round(x.tAcc/1000)/60)}
+function entPersist(){try{const E=S.ent;if(E.draft)localStorage.setItem(ENT_KEY,JSON.stringify({draft:E.draft,removed:E.removed||[],date:E.date,ses:E.ses,mode:E.mode}));else localStorage.removeItem(ENT_KEY)}catch(e){}}
+function entRestore(){try{const v=JSON.parse(localStorage.getItem(ENT_KEY)||"null");if(v&&Array.isArray(v.draft)&&v.draft.length)Object.assign(S.ent,{draft:v.draft,removed:v.removed||[],date:v.date||S.ent.date,ses:v.ses||1,mode:v.mode||"plan"})}catch(e){}}
+setInterval(()=>{const d=S.ent.draft;if(!d||!d.some(x=>x.tStart))return;document.querySelectorAll("[data-clock]").forEach(el=>{const x=d[+el.dataset.clock];if(x)el.textContent=clockText(x)})},500);
+function entBlank(){return {ejercicio:"",pistas:"",minutos:""}}
+function entFromSaved(){return entFor(S.ent.date,S.ent.ses).map(r=>({row:r.row,ejercicio:r.ej,pistas:r.pistas,minutos:fmtMin(r.min)}))}
+function syncEnt(){document.querySelectorAll("[data-er]").forEach(el=>{const x=S.ent.draft&&S.ent.draft[+el.dataset.er];if(x)x[el.dataset.k]=el.value})}
+
+function viewEntrenos(){
+  const E=S.ent;const ses=E.ses,iso=E.date;const locked=!!E.draft;
+  const modes=`<div class="seg" role="group" style="align-self:flex-start">${[["plan","Planificar"],["vivo","En vivo"]].map(([k,l])=>`<button type="button" data-emode="${k}" aria-pressed="${E.mode===k}">${l}</button>`).join("")}</div>`;
+  const head=`<div class="panel">${modes}<div class="row" style="justify-content:space-between">
+      <div class="field"><label class="label" for="efecha">Fecha</label><input id="efecha" type="date" value="${iso}"${locked?" disabled":""}></div>
+      <div class="field"><span class="label">Sesión</span><div class="seg" role="group">${[1,2,3].map(p=>`<button type="button" data-eses="${p}" aria-pressed="${ses===p}"${locked?" disabled":""}>${p===3?"P3 · ACB":"Practice "+p}</button>`).join("")}</div></div></div>
+    <div class="note">${esc(niceDate(iso))}${locked?" · Guarda o descarta lo que tienes abierto para cambiar de sesión.":""}</div></div>`;
+  if(!E.loaded)return head+`<div class="empty">Leyendo ENTRENOS DATOS…</div>`;
+  return head+(E.mode==="vivo"?viewVivo():viewPlan());
+}
+function entActions(){const E=S.ent;return `<div class="row"><button type="button" class="btn ghost" id="eAdd">Añadir ejercicio</button><button type="button" class="btn" id="eSave"${E.saving?" disabled":""}>Guardar en la hoja</button><button type="button" class="btn ghost" id="eDrop">Descartar</button></div>`}
+function viewPlan(){
+  const E=S.ent;const list=entFor(E.date,E.ses);const tt=entTotals(list);
+  const saved=list.length?`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Guardado en la hoja</span>${E.draft?"":`<button type="button" class="btn ghost" id="eEdit" style="padding:6px 12px;font-size:15px">Editar</button>`}</div>
+    <div class="kpis"><div class="kpi"><span class="label">Total</span><b>${fmt(tt.t,0)}</b><span class="note">min</span></div><div class="kpi"><span class="label">Oposición</span><b>${fmt(tt.o,0)}</b><span class="note">min</span></div><div class="kpi"><span class="label">% oposición</span><b>${tt.p}%</b>${tt.sin?`<span class="note">${tt.sin} sin minutos</span>`:""}</div></div>
+    <div class="list">${list.map(r=>`<div class="erow"><span class="pill ${isOpo(r.ej)?"bad":"ok"}">${isOpo(r.ej)?"Opos.":"Sin op."}</span><span class="en">${esc(r.ej)}${r.pistas?` <span class="note">· ${esc(r.pistas)}</span>`:""}</span><span class="em num">${r.min==null?"–":fmtMin(r.min)+"′"}</span></div>`).join("")}</div></div>`
+    :`<div class="empty">No hay ejercicios guardados para esta sesión.</div>`;
+  const d=E.draft;
+  const draft=d?`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Revisa antes de guardar</span><span class="note">${d.length} ejercicios</span></div>
+    <div class="note">Minutos como 12 o 12:30 (min:seg). Pistas: 1/2 = HC, 1/2+1 = HC+FC, 1 = FC. Para cronometrar, pasa a En vivo.</div>
+    <div class="list">${d.map((x,i)=>`<div class="drow">
+      <label style="grid-column:span 6">Ejercicio<input type="text" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="5X5"></label>
+      <label style="grid-column:span 3">Pistas<input type="text" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="HC+FC"></label>
+      <label style="grid-column:span 3">Minutos<input type="text" inputmode="decimal" data-er="${i}" data-k="minutos" value="${esc(x.minutos??"")}" placeholder="12:30"></label>
+      <div class="full row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}<button type="button" class="btn ghost" data-edel="${i}" style="padding:6px 10px;font-size:14px">Quitar</button></div>
+    </div>`).join("")}</div>${entActions()}</div>`:"";
+  const canRead=!!S.sample;
+  const upload=`<div class="panel"><span class="label">Subir la foto del entreno</span>
+    ${canRead?`<div class="note">Sube una foto o captura del entreno${S.imgOK?"":" (en esta vista solo se puede pegar texto)"}, o pega el texto. La app saca cada ejercicio con sus pistas y su tiempo, y te deja corregirlo antes de guardar.</div>
+    ${S.imgOK?`<div class="row"><label class="btn ghost" for="efile">Elegir foto</label><input id="efile" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0"><span class="note" id="ename">${esc(S.ent.fname||"")}</span></div>`:""}
+    <textarea id="etext" placeholder="5X0 1/2+1 12:30&#10;4X4X4 1/2 10'&#10;TIRO 15'">${esc(S.ent.text||"")}</textarea>
+    <div class="row"><button type="button" class="btn" id="eRead"${S.ent.reading?" disabled":""}>${S.ent.reading?"Leyendo…":"Leer entreno"}</button><button type="button" class="btn ghost" id="eManual">Añadir a mano</button></div>
+    ${S.ent.msg?`<div class="note">${esc(S.ent.msg)}</div>`:""}`
+    :`<div class="note">La lectura automática no está disponible en esta vista. Puedes añadir los ejercicios a mano.</div><div class="row"><button type="button" class="btn ghost" id="eManual">Añadir a mano</button></div>`}</div>`;
+  return saved+draft+upload;
+}
+function viewVivo(){
+  const E=S.ent;const d=E.draft;
+  if(!d||!d.length)return `<div class="empty">No hay ejercicios para esta sesión. Súbelos en Planificar o añade uno.</div><div class="row" style="justify-content:center"><button type="button" class="btn" id="eAddLive">Añadir ejercicio</button></div>`;
+  const cards=d.map((x,i)=>`<div class="live${x.tStart?" on":""}">
+    <div class="lhead"><input type="text" class="lname" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="Nombre del ejercicio"><input type="text" class="lpist" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="Pistas"></div>
+    <div class="lrow"><span class="clock num" data-clock="${i}">${clockText(x)}</span>
+      <button type="button" class="btn big${x.tStart?"":" ghost"}" data-tgo="${i}">${x.tStart?"Acabar":(x.tAcc?"Seguir":"Empezar")}</button></div>
+    <div class="row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}<span class="note">${x.minutos?"Apuntado: "+esc(x.minutos)+" min":""}${x.tAcc&&!x.tStart?` · <button type="button" class="linkbtn" data-trs="${i}">A cero</button>`:""}</span></div>
+  </div>`).join("");
+  return `<div class="list">${cards}</div><div class="panel">${entActions()}</div>`;
+}
+async function readEntreno(){
+  const E=S.ent;const text=(document.getElementById("etext")||{}).value||"";E.text=text;
+  if(!entImg&&!text.trim()){E.msg="Elige una foto o pega el texto del entreno primero.";render();return}
+  const prompt=`Eres el asistente de un preparador físico de un equipo de baloncesto U22 en España. Lee el entrenamiento${entImg?" de la imagen":""}${text.trim()?" y este texto:\n\n"+text.slice(0,6000)+"\n\n":". "}
+Saca cada ejercicio en el orden en que aparece. De cada uno solo quiero tres cosas:
+- "ejercicio": el nombre, en mayúsculas, SIN las pistas (p. ej. "5X5", "4X4X4", "5X0", "TIRO", "RUEDA 3X0").
+- "pistas": lo que aparece después del nombre para indicar el espacio, convertido así: "1/2" -> "HC"; "1/2+1" -> "HC+FC"; "1/2+2" -> "HC+2FC"; "1" -> "FC"; "1/2 + open basket" se deja tal cual; si ya viene como HC/FC, cópialo; si no hay, "".
+- "minutos": duración en minutos como número decimal (12:30 = 12.5; si hay hora de inicio y fin, la diferencia), o null si no se ve.
+Devuelve SOLO un array JSON. No incluyas totales, sumas ni descansos. Ejemplo: [{"ejercicio":"5X5","pistas":"HC+FC","minutos":12.5}]`;
+  E.reading=true;E.msg="Leyendo el entreno, puede tardar hasta un minuto…";render();
+  try{
+    const opts={modelTier:"default"};if(entImg)opts.images=[entImg];
+    const out=await S.sample.json(prompt,opts);const arr=Array.isArray(out)?out:[];
+    const clean=arr.filter(o=>o&&o.ejercicio).map(o=>({ejercicio:String(o.ejercicio).toUpperCase().slice(0,60),pistas:normPistas(o.pistas).slice(0,40),
+      minutos:Number.isFinite(+o.minutos)&&o.minutos!==null?fmtMin(+o.minutos):""}));
+    if(!clean.length)E.msg="No he encontrado ejercicios. Prueba con una foto más nítida o añádelos a mano.";
+    else{E.draft=(E.draft||[]).concat(clean);E.msg="";E.text="";E.fname="";entImg=null}
+  }catch(e){const c=e&&e.code;
+    E.msg=c==="not_granted"?"Has denegado el permiso para leer el entreno. Puedes añadir los ejercicios a mano."
+      :c==="invalid_json"?"No he podido entender el entreno. Prueba con una foto más nítida o pega el texto."
+      :c==="image_rejected"||c==="images_unavailable"?"No se ha podido usar esa imagen. Prueba con una captura en JPG o PNG, o pega el texto."
+      :c==="rate_limited"?"Demasiadas lecturas seguidas. Espera un minuto y vuelve a probar."
+      :"No se ha podido leer el entreno ("+(c||"error")+"). Puedes añadir los ejercicios a mano.";}
+  E.reading=false;render();
+}
+async function saveEntreno(){
+  syncEnt();const E=S.ent;const d=E.draft;d.forEach(stopTimer);
+  for(const x of d){if(!x.ejercicio.trim()){toast("Falta el nombre en algún ejercicio");return}
+    if(String(x.minutos).trim()!==""&&parseMin(x.minutos)==null){toast("Minutos no válidos en "+x.ejercicio);return}}
+  E.saving=true;render();
+  try{
+    const fresh=[];
+    for(const x of d){const m=parseMin(x.minutos);const ad=[isoToDMY(E.date),E.ses,x.ejercicio.trim().toUpperCase(),m==null?"":Math.round(m*100)/100];const pi=normPistas(x.pistas);
+      if(x.row){await sset(ENT+"!A"+x.row+":D"+x.row,[ad]);await sset(ENT+"!H"+x.row,[[pi]])}else fresh.push([ad,pi])}
+    for(const r of (E.removed||[])){await sset(ENT+"!A"+r+":D"+r,[["","","",""]]);await sset(ENT+"!H"+r+":I"+r,[["",""]])}
+    if(fresh.length){const a=E.next,b=a+fresh.length-1;
+      await sset(ENT+"!A"+a+":D"+b,fresh.map(f=>f[0]));await sset(ENT+"!H"+a+":H"+b,fresh.map(f=>[f[1]]))}
+    await loadEntrenos();E.draft=null;E.removed=[];entPersist();toast(d.length+" ejercicios guardados");
+  }catch(e){toast(errText(e))}
+  E.saving=false;render();
+}
+function bindEntrenos(){
+  const E=S.ent;
+  document.querySelectorAll("[data-emode]").forEach(b=>b.onclick=()=>{syncEnt();E.mode=b.dataset.emode;
+    if(E.mode==="vivo"&&!E.draft){const s=entFromSaved();if(s.length)E.draft=s}render()});
+  const ef=document.getElementById("efecha");if(ef)ef.onchange=()=>{if(ef.value){E.date=ef.value;render()}};
+  document.querySelectorAll("[data-eses]").forEach(b=>b.onclick=()=>{E.ses=+b.dataset.eses;if(E.mode==="vivo"&&!E.draft){const s=entFromSaved();if(s.length)E.draft=s}render()});
+  const fl=document.getElementById("efile");if(fl)fl.onchange=async()=>{const f=fl.files&&fl.files[0];if(!f)return;
+    try{entImg=await shrink(f);E.fname=f.name;document.getElementById("ename").textContent=f.name}catch(e){entImg=null;toast("No se pudo abrir esa imagen")}};
+  const rd=document.getElementById("eRead");if(rd)rd.onclick=readEntreno;
+  const mn=document.getElementById("eManual");if(mn)mn.onclick=()=>{syncEnt();E.draft=(E.draft||[]).concat([entBlank()]);render()};
+  const ad=document.getElementById("eAdd");if(ad)ad.onclick=()=>{syncEnt();E.draft.push(entBlank());render()};
+  const al=document.getElementById("eAddLive");if(al)al.onclick=()=>{E.draft=[entBlank()];render()};
+  document.querySelectorAll("[data-edel]").forEach(b=>b.onclick=()=>{syncEnt();const [x]=E.draft.splice(+b.dataset.edel,1);if(x&&x.row)(E.removed=E.removed||[]).push(x.row);if(!E.draft.length&&!(E.removed||[]).length)E.draft=null;render()});
+  const sv=document.getElementById("eSave");if(sv)sv.onclick=saveEntreno;
+  const dr=document.getElementById("eDrop");if(dr)dr.onclick=()=>{E.draft=null;E.removed=[];render()};
+  const ed=document.getElementById("eEdit");if(ed)ed.onclick=()=>{E.draft=entFromSaved();render()};
+  document.querySelectorAll("[data-tgo]").forEach(b=>b.onclick=()=>{syncEnt();const i=+b.dataset.tgo,x=E.draft[i];
+    if(x.tStart){stopTimer(x);toast((x.ejercicio||"Ejercicio")+": "+x.minutos+" min")}
+    else{E.draft.forEach((y,j)=>{if(j!==i)stopTimer(y)});x.tStart=Date.now()}
+    render()});
+  document.querySelectorAll("[data-trs]").forEach(b=>b.onclick=()=>{syncEnt();const x=E.draft[+b.dataset.trs];x.tAcc=0;x.tStart=null;x.minutos="";render()});
+  document.querySelectorAll("[data-er]").forEach(el=>el.addEventListener("change",()=>{syncEnt();entPersist()}));
+  document.querySelectorAll('[data-er][data-k="ejercicio"]').forEach(inp=>inp.oninput=()=>{const p=document.querySelector('[data-opo="'+inp.dataset.er+'"]');if(p){const o=isOpo(inp.value);p.className="pill "+(o?"bad":"ok");p.textContent=o?"Oposición":"Sin oposición"}});
+}
+
+function viewEquipo(){
+  const up=!!S.assets&&!!S.db;
+  const rows=S.players.map(n=>`<div class="ph-row"><div class="av">${avatar(n)}</div><div class="nm" style="font:600 20px/1.1 var(--display)">${esc(n)}</div>
+    ${up?`<label class="btn" for="f-${slug(n)}">${S.photos[slug(n)]?"Cambiar foto":"Poner foto"}</label><input id="f-${slug(n)}" type="file" accept="image/*" data-up="${esc(n)}">`:""}</div>`).join("");
+  return `<div class="panel"><span class="label">Fotos para la pantalla de RPE</span>
+    <div class="note">${up?"Haz la foto o elígela de la galería. Se recorta en cuadrado automáticamente.":"Escribe la clave de la app para poder subir fotos."}</div>
+    <div class="list">${rows}</div></div>
+    <div class="note">Los jugadores salen de la pestaña RPE de la hoja. Si apuntas a alguien nuevo allí, aparece aquí al pulsar Actualizar.</div>`;
+}
+
+const photoUrl=id=>String(id).startsWith("data:")?id:"/_blob/"+id;
+async function uploadPhoto(name,file){
+  try{
+    const img=await createImageBitmap(file);const s=Math.min(img.width,img.height);const c=document.createElement("canvas");c.width=c.height=480;
+    c.getContext("2d").drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,480,480);
+    const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",0.85));
+    const res=await S.assets.upload(blob,{type:"image/jpeg"});
+    await S.db.collection("players").doc(slug(name)).set({name,photo:res.id});
+    S.photos[slug(name)]=photoUrl(res.id);toast("Foto de "+name+" guardada");render();
+  }catch(e){toast("No se pudo subir la foto ("+(e&&e.code||"error")+").")}
+}
+
+function bind(){
+  bindCharts();bindEntrenos();
+  document.querySelectorAll("[data-player]").forEach(b=>b.onclick=()=>S.kiosk?openKioskScale(b.dataset.player):openScale(b.dataset.player));
+  const ko=document.getElementById("kioskOn");if(ko)ko.onclick=()=>{S.kiosk=true;render();window.scrollTo(0,0)};
+  document.querySelectorAll("[data-prac],[data-pick]").forEach(b=>b.onclick=()=>{S.practice=+(b.dataset.prac||b.dataset.pick);S.practiceSet=true;render()});
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const [d,p]=b.dataset.go.split("|");S.date=d;S.practice=+p;S.practiceSet=true;S.tab="sesion";render();window.scrollTo(0,0)});
+  const wp=document.getElementById("wprev");if(wp)wp.onclick=()=>{S.week=addDays(S.week,-7);render()};
+  const wn=document.getElementById("wnext");if(wn)wn.onclick=()=>{S.week=addDays(S.week,7);render()};
+  const hf=document.getElementById("hfile");if(hf)hf.onchange=async()=>{const fl=hf.files&&hf.files[0];if(!fl)return;
+    try{pendingImg=await shrink(fl);S.hname=fl.name;document.getElementById("hname").textContent=fl.name}catch(e){pendingImg=null;toast("No se pudo abrir esa imagen")}};
+  const rh=document.getElementById("readH");if(rh)rh.onclick=readHorario;
+  const mn=document.getElementById("manual");if(mn)mn.onclick=()=>{S.draft=(S.draft||[]).concat([{fecha:S.week,sesion:1,hora:"",tipo:"",minutos:null,notas:""}]);render()};
+  const ar=document.getElementById("addRow");if(ar)ar.onclick=()=>{syncDraft();const last=S.draft[S.draft.length-1];S.draft.push({fecha:last?last.fecha:S.week,sesion:1,hora:"",tipo:"",minutos:null,notas:""});render()};
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{syncDraft();S.draft.splice(+b.dataset.del,1);if(!S.draft.length)S.draft=null;render()});
+  const sd=document.getElementById("saveDraft");if(sd)sd.onclick=saveDraft;
+  const dd=document.getElementById("dropDraft");if(dd)dd.onclick=()=>{S.draft=null;render()};
+  const f=document.getElementById("fecha");if(f)f.onchange=()=>{if(f.value){S.date=f.value;S.practiceSet=false;pickPractice();S.loads={};render();if(S.mcp)loadLoad(S.loadTab).then(render).catch(()=>{})}};
+  const sm=document.getElementById("saveMin");if(sm)sm.onclick=()=>{const v=document.getElementById("minutos").value.trim();const n=v===""?null:num(v);
+    if(v!==""&&(n==null||n<0||n>300)){toast("Escribe los minutos entre 0 y 300");return}saveTiempo(n)};
+  document.querySelectorAll("[data-load]").forEach(b=>b.onclick=async()=>{S.loadTab=b.dataset.load;render();if(!S.loads[S.loadTab]&&S.mcp){try{await loadLoad(S.loadTab)}catch(e){S.err=errText(e)}render()}});
+  const pd=document.getElementById("pdate");if(pd)pd.onchange=()=>{if(pd.value){S.pesoDate=pd.value;render()}};
+  const sp=document.getElementById("savePeso");if(sp)sp.onclick=savePesos;
+  document.querySelectorAll("[data-up]").forEach(i=>i.onchange=()=>{if(i.files&&i.files[0])uploadPhoto(i.dataset.up,i.files[0])});
+}
+
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=async()=>{S.tab=b.dataset.tab;render();
+  if(S.tab==="carga"&&!S.loads[S.loadTab]&&S.mcp){try{await loadLoad(S.loadTab)}catch(e){S.err=errText(e)}render()}
+  if(S.tab==="pesos"&&!S.pesos&&S.mcp){try{await loadPesos()}catch(e){S.err=errText(e)}render()}
+  if(S.tab==="entrenos"&&!S.ent.loaded&&S.mcp){try{await loadEntrenos()}catch(e){S.err=errText(e)}render()}});
+(()=>{const h=document.getElementById("title");let t=null;const stop=()=>{clearTimeout(t);t=null};
+  h.addEventListener("pointerdown",()=>{if(!S.kiosk)return;stop();t=setTimeout(()=>{S.kiosk=false;document.getElementById("sheetHost").innerHTML="";render();toast("Modo entrenador")},2000)});
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>h.addEventListener(ev,stop));
+  h.addEventListener("contextmenu",e=>{if(S.kiosk)e.preventDefault()})})();
+function exitKiosk(){S.kiosk=false;document.getElementById("sheetHost").innerHTML="";render();toast("Modo entrenador")}
+/* Botón visible para salir del modo jugador: un toque basta (Iñigo lo pidió así el 21/10). */
+document.addEventListener("click",e=>{if(S.kiosk&&e.target.closest&&e.target.closest("#kioskOff"))exitKiosk()});
+document.getElementById("reload").onclick=()=>{if(S.mcp)loadAll();else toast("Escribe la clave de la app para conectar con la hoja.")};
+
+entRestore();
+render();
+(async()=>{
+  const C=window.claude;
+  if(!C||!C.use){S.err="No se ha podido arrancar la conexión con la hoja U22.";setSync("Sin conexión");render();return}
+  C.use("db").then(db=>{S.db=db;if(!db)return;db.collection("players").onSnapshot(snap=>{snap.docs.forEach(d=>{const x=d.data()||{};if(x.photo)S.photos[d.id]=photoUrl(x.photo)});render()},()=>{})});
+  C.use("assets").then(a=>{S.assets=a;if(S.tab==="equipo")render()});
+  C.use("sample").then(async s=>{S.sample=s;if(s){const l=await s.limits().catch(()=>null);S.imgOK=!!(l&&l.images)}if(S.tab==="horario")render()});
+  S.mcp=await C.use("mcp");
+  if(!S.mcp){S.err="Escribe la clave de la app para conectar con la hoja U22.";setSync("Sin conexión");render();return}
+  loadAll();
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,8 @@
+{
+  "name": "amara-u22",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.137.0"
+  }
+}
