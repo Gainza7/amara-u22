@@ -169,6 +169,7 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .tmr.on .clock{color:var(--accent)}
 .live{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 3px 12px rgba(0,0,0,.22)}
 .live.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent),0 3px 12px rgba(0,0,0,.22)}
+.mv{display:inline-flex;gap:4px}.mvb{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--accent);font:700 18px/1 system-ui,sans-serif;cursor:pointer}.mvb:disabled{opacity:.3;cursor:default}
 .lhead{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:8px}
 .lhead input{width:100%;background:transparent;border:1px solid transparent;border-radius:8px;padding:4px 6px}
 .lhead input:focus{border-color:var(--line);background:var(--surface-2)}
@@ -671,7 +672,7 @@ function normPistas(v){const s=String(v||"").trim();const k=s.replace(/\s+/g,"")
   if(k==="1/2")return "HC";if(k==="1/2+1")return "HC+FC";if(k==="1/2+2")return "HC+2FC";if(k==="1")return "FC";return s.toUpperCase()}
 async function loadEntrenos(){
   const [ad,hi]=await Promise.all([sget(ENT+"!A1:D3000"),sget(ENT+"!H1:I3000")]);
-  S.ent.rows=ad.map((r,i)=>({row:i+1,iso:dmyToIso(r[0]),ses:num(r[1])||1,ej:(r[2]||"").trim(),min:num(r[3]),pistas:((hi[i]||[])[0]||"").trim()})).slice(1).filter(r=>r.iso&&r.ej);
+  S.ent.rows=ad.map((r,i)=>({row:i+1,iso:dmyToIso(r[0]),ses:num(r[1])||1,ej:(r[2]||"").trim(),min:num(r[3]),pistas:((hi[i]||[])[0]||"").trim(),notas:(hi[i]||[])[1]||""})).slice(1).filter(r=>r.iso&&r.ej);
   S.ent.next=Math.max(ad.length,hi.length,1)+1;S.ent.loaded=true;
 }
 function entFor(iso,ses){return S.ent.rows.filter(r=>r.iso===iso&&r.ses===ses)}
@@ -688,7 +689,9 @@ function entPersist(){try{const E=S.ent;if(E.draft)localStorage.setItem(ENT_KEY,
 function entRestore(){try{const v=JSON.parse(localStorage.getItem(ENT_KEY)||"null");if(v&&Array.isArray(v.draft)&&v.draft.length)Object.assign(S.ent,{draft:v.draft,removed:v.removed||[],date:v.date||S.ent.date,ses:v.ses||1,mode:v.mode||"plan"})}catch(e){}}
 setInterval(()=>{const d=S.ent.draft;if(!d||!d.some(x=>x.tStart))return;document.querySelectorAll("[data-clock]").forEach(el=>{const x=d[+el.dataset.clock];if(x)el.textContent=clockText(x)})},500);
 function entBlank(){return {ejercicio:"",pistas:"",minutos:""}}
-function entFromSaved(){return entFor(S.ent.date,S.ent.ses).map(r=>({row:r.row,ejercicio:r.ej,pistas:r.pistas,minutos:fmtMin(r.min)}))}
+function entFromSaved(){return entFor(S.ent.date,S.ent.ses).map(r=>({row:r.row,ejercicio:r.ej,pistas:r.pistas,minutos:fmtMin(r.min),notas:r.notas}))}
+/* Flechas para cambiar el orden: al guardar, el orden de la lista decide qué fila ocupa cada ejercicio. */
+function moveBtns(i,n){return `<span class="mv"><button type="button" class="mvb" data-emv="${i}|-1" aria-label="Subir"${i===0?" disabled":""}>↑</button><button type="button" class="mvb" data-emv="${i}|1" aria-label="Bajar"${i===n-1?" disabled":""}>↓</button></span>`}
 function syncEnt(){document.querySelectorAll("[data-er]").forEach(el=>{const x=S.ent.draft&&S.ent.draft[+el.dataset.er];if(x)x[el.dataset.k]=el.value})}
 
 function viewEntrenos(){
@@ -710,12 +713,12 @@ function viewPlan(){
     :`<div class="empty">No hay ejercicios guardados para esta sesión.</div>`;
   const d=E.draft;
   const draft=d?`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Revisa antes de guardar</span><span class="note">${d.length} ejercicios</span></div>
-    <div class="note">Minutos como 12 o 12:30 (min:seg). Pistas: 1/2 = HC, 1/2+1 = HC+FC, 1 = FC. Para cronometrar, pasa a En vivo.</div>
+    <div class="note">Minutos como 12 o 12:30 (min:seg). Pistas: 1/2 = HC, 1/2+1 = HC+FC, 1/2+2 = HC+2FC, 1 = FC. Usa ↑ ↓ para cambiar el orden. Para cronometrar, pasa a En vivo.</div>
     <div class="list">${d.map((x,i)=>`<div class="drow">
       <label style="grid-column:span 6">Ejercicio<input type="text" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="5X5"></label>
       <label style="grid-column:span 3">Pistas<input type="text" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="HC+FC"></label>
       <label style="grid-column:span 3">Minutos<input type="text" inputmode="decimal" data-er="${i}" data-k="minutos" value="${esc(x.minutos??"")}" placeholder="12:30"></label>
-      <div class="full row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}<button type="button" class="btn ghost" data-edel="${i}" style="padding:6px 10px;font-size:14px">Quitar</button></div>
+      <div class="full row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}<span class="row" style="gap:8px">${moveBtns(i,d.length)}<button type="button" class="btn ghost" data-edel="${i}" style="padding:6px 10px;font-size:14px">Quitar</button></span></div>
     </div>`).join("")}</div>${entActions()}</div>`:"";
   const canRead=!!S.sample;
   const upload=`<div class="panel"><span class="label">Subir la foto del entreno</span>
@@ -734,7 +737,7 @@ function viewVivo(){
     <div class="lhead"><input type="text" class="lname" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="Nombre del ejercicio"><input type="text" class="lpist" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="Pistas"></div>
     <div class="lrow"><span class="clock num" data-clock="${i}">${clockText(x)}</span>
       <button type="button" class="btn big${x.tStart?"":" ghost"}" data-tgo="${i}">${x.tStart?"Acabar":(x.tAcc?"Seguir":"Empezar")}</button></div>
-    <div class="row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}<span class="note">${x.minutos?"Apuntado: "+esc(x.minutos)+" min":""}${x.tAcc&&!x.tStart?` · <button type="button" class="linkbtn" data-trs="${i}">A cero</button>`:""}</span></div>
+    <div class="row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}${moveBtns(i,d.length)}<span class="note">${x.minutos?"Apuntado: "+esc(x.minutos)+" min":""}${x.tAcc&&!x.tStart?` · <button type="button" class="linkbtn" data-trs="${i}">A cero</button>`:""}</span></div>
   </div>`).join("");
   return `<div class="list">${cards}</div><div class="panel">${entActions()}</div>`;
 }
@@ -769,12 +772,15 @@ async function saveEntreno(){
     if(String(x.minutos).trim()!==""&&parseMin(x.minutos)==null){toast("Minutos no válidos en "+x.ejercicio);return}}
   E.saving=true;render();
   try{
+    /* Las filas que ya ocupaba la sesión se reparten en el orden de la lista; lo que sobre va al final de la hoja. */
+    const slots=d.filter(x=>x.row).map(x=>x.row).sort((a,b)=>a-b);
+    const line=x=>{const m=parseMin(x.minutos);return {ad:[isoToDMY(E.date),E.ses,x.ejercicio.trim().toUpperCase(),m==null?"":Math.round(m*100)/100],hi:[normPistas(x.pistas),x.notas||""]}};
     const fresh=[];
-    for(const x of d){const m=parseMin(x.minutos);const ad=[isoToDMY(E.date),E.ses,x.ejercicio.trim().toUpperCase(),m==null?"":Math.round(m*100)/100];const pi=normPistas(x.pistas);
-      if(x.row){await sset(ENT+"!A"+x.row+":D"+x.row,[ad]);await sset(ENT+"!H"+x.row,[[pi]])}else fresh.push([ad,pi])}
+    for(let k=0;k<d.length;k++){const l=line(d[k]);
+      if(k<slots.length){const r=slots[k];await sset(ENT+"!A"+r+":D"+r,[l.ad]);if(d[k].notas===undefined)await sset(ENT+"!H"+r,[[l.hi[0]]]);else await sset(ENT+"!H"+r+":I"+r,[l.hi])}else fresh.push(l)}
     for(const r of (E.removed||[])){await sset(ENT+"!A"+r+":D"+r,[["","","",""]]);await sset(ENT+"!H"+r+":I"+r,[["",""]])}
     if(fresh.length){const a=E.next,b=a+fresh.length-1;
-      await sset(ENT+"!A"+a+":D"+b,fresh.map(f=>f[0]));await sset(ENT+"!H"+a+":H"+b,fresh.map(f=>[f[1]]))}
+      await sset(ENT+"!A"+a+":D"+b,fresh.map(f=>f.ad));await sset(ENT+"!H"+a+":I"+b,fresh.map(f=>f.hi))}
     await loadEntrenos();E.draft=null;E.removed=[];entPersist();toast(d.length+" ejercicios guardados");
   }catch(e){toast(errText(e))}
   E.saving=false;render();
@@ -792,6 +798,7 @@ function bindEntrenos(){
   const ad=document.getElementById("eAdd");if(ad)ad.onclick=()=>{syncEnt();E.draft.push(entBlank());render()};
   const al=document.getElementById("eAddLive");if(al)al.onclick=()=>{E.draft=[entBlank()];render()};
   document.querySelectorAll("[data-edel]").forEach(b=>b.onclick=()=>{syncEnt();const [x]=E.draft.splice(+b.dataset.edel,1);if(x&&x.row)(E.removed=E.removed||[]).push(x.row);if(!E.draft.length&&!(E.removed||[]).length)E.draft=null;render()});
+  document.querySelectorAll("[data-emv]").forEach(b=>b.onclick=()=>{syncEnt();const [i,dir]=b.dataset.emv.split("|").map(Number),j=i+dir;const d=E.draft;if(!d||j<0||j>=d.length)return;[d[i],d[j]]=[d[j],d[i]];entPersist();render()});
   const sv=document.getElementById("eSave");if(sv)sv.onclick=saveEntreno;
   const dr=document.getElementById("eDrop");if(dr)dr.onclick=()=>{E.draft=null;E.removed=[];render()};
   const ed=document.getElementById("eEdit");if(ed)ed.onclick=()=>{E.draft=entFromSaved();render()};
