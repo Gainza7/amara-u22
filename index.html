@@ -180,6 +180,14 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .live.on .clock{color:var(--accent)}
 .btn.big{font-size:24px;padding:16px 26px;min-width:150px}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font:inherit}
+.wsem{display:flex;flex-direction:column;gap:4px;overflow-x:auto}
+.wsr{display:grid;grid-template-columns:minmax(64px,1.4fr) repeat(6,minmax(34px,1fr));gap:4px;align-items:center}
+.wsh span{font-size:10px;line-height:1.1;color:var(--muted);text-align:center}
+.wsn{font:600 15px/1.1 var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wsc{display:grid;place-items:center;height:34px;border-radius:8px;font:700 17px/1 var(--display);background:var(--surface-2);color:var(--fg)}
+.wsc.ok{background:#2f7d4f;color:#fff}.wsc.warn{background:#e39a1c;color:#fff}.wsc.bad{background:#c62828;color:#fff}.wsc.none{background:transparent}
+.wleg{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px;align-items:center}.wleg .wsc{width:18px;height:18px;border-radius:5px;font-size:12px}
+.wnum.ok b{color:var(--ok)}
 .wcard{background:var(--surface-2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .wcard.alert{box-shadow:inset 4px 0 0 var(--bad)}
 .whead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.whead b{font:600 19px/1.1 var(--display)}
@@ -839,8 +847,13 @@ async function loadWellness(){
 const wellKey=n=>String(n||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").split(/\s+/)[0];
 /* Jugador del U22 si su nombre empieza como uno de los de la app (Babacar → Baba, Alexis Pou → Alexis). */
 function wellU22(name){const k=wellKey(name);return S.players.some(p=>{const q=wellKey(p);return q&&(k===q||k.startsWith(q))})}
-/* A vigilar: un comentario, fatiga de hoy de 8 o más, o motivación de 2 o menos. */
-function wellAlert(r){return !!r.com||(r.fatHoy!=null&&r.fatHoy>=8)||(r.motiv!=null&&r.motiv<=2)}
+/* Semáforo por pregunta. Fatiga y estrés: alto es malo (8+ rojo, 6-7 naranja). Motivación (1-5): bajo es malo (1-2 rojo, 3 naranja).
+   El RPE de partido es carga, no se colorea. Escalas pendientes de confirmar con Iñigo. */
+const WELL_Q=[["rpe","RPE partido",null,"RPE"],["fatAntes","Fatiga antes","alto","Fat. antes"],["fatHoy","Fatiga hoy","alto","Fat. hoy"],["estres","Estrés","alto","Estrés"],["motiv","Motivación","bajo","Motiv."]];
+function wellLevel(k,v){if(v==null)return "";const q=WELL_Q.find(x=>x[0]===k);if(!q||!q[2])return "";
+  if(q[2]==="alto")return v>=8?"bad":v>=6?"warn":"ok";return v<=2?"bad":v<=3?"warn":"ok"}
+/* A vigilar: un comentario o cualquier pregunta en rojo. */
+function wellAlert(r){return !!r.com||WELL_Q.some(q=>wellLevel(q[0],r[q[0]])==="bad")}
 function viewWellness(){
   const W=S.well;
   if(!W.loaded)return `<div class="empty">Leyendo la pestaña WELLNESS…</div>`;
@@ -866,13 +879,18 @@ function viewWellness(){
   const num1=(lab,v,cls)=>`<div class="wnum ${cls||""}"><span>${lab}</span><b>${v==null?"–":fmt(v,0)}</b></div>`;
   const cards=list.map(r=>{const pv=prevOf(r);const d=pv&&pv.fatHoy!=null&&r.fatHoy!=null?r.fatHoy-pv.fatHoy:null;
     return `<div class="wcard${wellAlert(r)?" alert":""}"><div class="whead"><b>${esc(r.name)}</b><span class="note">${esc(isoToDMY(r.iso).slice(0,5))} ${esc(r.hora)}</span></div>
-    <div class="wnums">${num1("RPE partido",r.rpe)}${num1("Fatiga antes",r.fatAntes)}${num1("Fatiga hoy",r.fatHoy,r.fatHoy>=8?"bad":"")}${num1("Estrés",r.estres)}${num1("Motivación",r.motiv,r.motiv!=null&&r.motiv<=2?"warn":"")}</div>
+    <div class="wnums">${WELL_Q.map(q=>num1(q[1],r[q[0]],wellLevel(q[0],r[q[0]]))).join("")}</div>
     ${d!=null&&d!==0?`<span class="note">Fatiga hoy ${d>0?"+":""}${d} respecto a su respuesta anterior (${esc(isoToDMY(pv.iso).slice(0,5))})</span>`:""}
     ${r.com?`<p class="wcom">${esc(r.com)}</p>`:""}</div>`}).join("");
-  return nav+kpis+`<div class="panel"><span class="label">Respuestas de la semana</span>
+  const short=n=>{const w=String(n).split(/\s+/);return w[0]+(w[1]?" "+w[1][0]+".":"")};
+  const sem=list.length?`<div class="panel"><span class="label">Semáforo</span>
+    <div class="wsem" role="table"><div class="wsr wsh" role="row"><span></span>${WELL_Q.map(q=>`<span role="columnheader">${esc(q[3])}</span>`).join("")}<span role="columnheader">Molest.</span></div>
+    ${list.map(r=>`<div class="wsr" role="row"><span class="wsn">${esc(short(r.name))}</span>${WELL_Q.map(q=>`<span class="wsc ${wellLevel(q[0],r[q[0]])}">${r[q[0]]==null?"–":fmt(r[q[0]],0)}</span>`).join("")}<span class="wsc ${r.com?"bad":"none"}" title="${esc(r.com)}">${r.com?"!":""}</span></div>`).join("")}</div>
+    <div class="wleg"><span class="wsc ok"></span> bien <span class="wsc warn"></span> regular <span class="wsc bad"></span> mal</div><div class="note" style="font-size:12px">Fatiga y estrés: 8 o más mal, 6-7 regular. Motivación: 1-2 mal, 3 regular. "!" = ha dejado un comentario (está abajo).</div></div>`:"";
+  return nav+kpis+sem+`<div class="panel"><span class="label">Respuestas de la semana</span>
     ${list.length?`<div class="list">${cards}</div>`:`<div class="empty">Nadie ha contestado esta semana${W.all?"":" del U22"}.</div>`}
     ${faltan.length?`<div class="note">Sin contestar: ${faltan.map(esc).join(", ")}</div>`:""}</div>
-    <div class="note">Se marca en rojo a quien deja un comentario, tiene fatiga de hoy de 8 o más o motivación de 2 o menos. Los datos salen de la pestaña WELLNESS (el formulario de los jugadores); aquí solo se leen.</div>`;
+    <div class="note">Con borde rojo, quien deja un comentario o tiene alguna pregunta en rojo. Los datos salen de la pestaña WELLNESS (el formulario de los jugadores); aquí solo se leen.</div>`;
 }
 function bindWellness(){
   const W=S.well;const ws=()=>[...new Set(W.rows.map(r=>mondayOf(r.iso)))].sort();
