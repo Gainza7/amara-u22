@@ -110,7 +110,7 @@ input[type=date],input[type=number],input[type=text]{background:var(--surface);b
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .kpi b{font:700 32px/1 var(--display);font-variant-numeric:tabular-nums}
 svg text{fill:var(--muted);font:12px var(--body)}
-.chartbox{overflow-x:auto;position:relative;touch-action:pan-y}
+.chartbox{overflow-x:auto;position:relative;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
 .chartbox svg{cursor:crosshair}
 .ctip{position:absolute;top:4px;transform:translateX(-50%);background:var(--fg);color:var(--bg);border-radius:8px;padding:5px 9px;font-size:13px;line-height:1.25;white-space:nowrap;pointer-events:none;z-index:2;text-align:center}
 .ctip b{font:700 16px/1 var(--display);display:block}
