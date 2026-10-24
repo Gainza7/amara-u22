@@ -54,7 +54,7 @@ header button{background:transparent;border:1px solid currentColor;border-radius
 main{flex:1;padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
-  display:grid;grid-template-columns:repeat(6,1fr);padding-bottom:env(safe-area-inset-bottom,0px);
+  display:grid;grid-template-columns:repeat(7,1fr);padding-bottom:env(safe-area-inset-bottom,0px);
   padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 nav.tabs button{background:none;border:0;padding:10px 4px 12px;font:600 15px/1.1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 nav.tabs button[aria-selected="true"]{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
@@ -180,12 +180,20 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .live.on .clock{color:var(--accent)}
 .btn.big{font-size:24px;padding:16px 26px;min-width:150px}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font:inherit}
+.wcard{background:var(--surface-2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.wcard.alert{box-shadow:inset 4px 0 0 var(--bad)}
+.whead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.whead b{font:600 19px/1.1 var(--display)}
+.wnums{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.wnum{background:var(--surface);border-radius:8px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.wnum span{font-size:11px;line-height:1.1;color:var(--muted)}.wnum b{font:600 20px/1 var(--display)}
+.wnum.bad b{color:var(--bad)}.wnum.warn b{color:var(--warn)}
+.wcom{margin:0;padding:8px 10px;border-radius:8px;background:var(--bad-soft);color:var(--fg);font-size:15px}
 .erow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--surface-2);border-radius:10px;padding:8px 10px}
 .erow .en{min-width:0;font-weight:500}
 .erow .em{font:600 18px/1 var(--display)}
 .confirm{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;text-align:center}
 .confirm .big{width:96px;height:96px;border-radius:20px;display:grid;place-items:center;font:700 60px/1 var(--display);color:#fff}
-@media (max-width:420px){nav.tabs button{font-size:12px;letter-spacing:.02em;padding-inline:2px}.drow .wide{grid-column:1/-1}.drow .half{grid-column:span 3}.wrow{grid-template-columns:minmax(0,1fr) 80px 60px}.wrow .imc{display:none}}
+@media (max-width:420px){nav.tabs button{font-size:11px;letter-spacing:0;padding-inline:1px}.drow .wide{grid-column:1/-1}.drow .half{grid-column:span 3}.wrow{grid-template-columns:minmax(0,1fr) 80px 60px}.wrow .imc{display:none}}
 @media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:active{transform:scale(.97)}}
 </style>
 
@@ -204,6 +212,7 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
     <button role="tab" data-tab="carga" aria-selected="false">Carga</button>
     <button role="tab" data-tab="pesos" aria-selected="false">Pesos</button>
     <button role="tab" data-tab="entrenos" aria-selected="false">Entrenos</button>
+    <button role="tab" data-tab="wellness" aria-selected="false">Wellness</button>
     <button role="tab" data-tab="equipo" aria-selected="false">Equipo</button>
   </nav>
 </div>
@@ -226,7 +235,7 @@ const RPE_COL=["","#3d8fb8","#3a9aa0","#3fa27f","#5fa851","#93a83c","#c79a26","#
 const S={tab:"sesion",date:isoToday(),practice:1,mcp:null,db:null,assets:null,
   rpe:{rows:[],next:2,loaded:false},tiempo:{byDM:{},loaded:false},pesos:null,panel:null,
   loads:{},loadTab:"ALEXIS",photos:{},players:RPE_NAMES.slice(),err:null,pesoDate:isoToday(),
-  horario:{rows:[],next:2,loaded:false},week:mondayOf(isoToday()),draft:null,reading:false,readMsg:"",sample:null,imgOK:false,practiceSet:false,kiosk:false,ent:{rows:[],next:2,loaded:false,date:isoToday(),ses:1,mode:"plan",draft:null,removed:[],reading:false,msg:"",text:"",fname:"",saving:false}};
+  horario:{rows:[],next:2,loaded:false},week:mondayOf(isoToday()),draft:null,reading:false,readMsg:"",sample:null,imgOK:false,practiceSet:false,kiosk:false,well:{rows:[],loaded:false,week:null,all:false},ent:{rows:[],next:2,loaded:false,date:isoToday(),ses:1,mode:"plan",draft:null,removed:[],reading:false,msg:"",text:"",fname:"",saving:false}};
 function mondayOf(iso){const d=new Date(iso+"T12:00:00");const k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return toIso(d)}
 function toIso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function addDays(iso,n){const d=new Date(iso+"T12:00:00");d.setDate(d.getDate()+n);return toIso(d)}
@@ -301,7 +310,7 @@ async function loadAll(){
   try{
     await Promise.all([loadRPE(),loadTiempo(),loadHorario().catch(()=>{S.horario.loaded=true})]);
     pickPractice();render();
-    await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null]);
+    await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null,(S.tab==="wellness"||S.well.loaded)?loadWellness():null]);
     const t=new Date();setSync("Hoja al día · "+t.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}));
   }catch(e){S.err=errText(e);setSync("Sin conexión con la hoja")}
   render();
@@ -357,6 +366,7 @@ function render(){
   else if(S.tab==="carga")main.innerHTML=banner+viewCarga();
   else if(S.tab==="pesos")main.innerHTML=banner+viewPesos();
   else if(S.tab==="entrenos"){main.innerHTML=banner+viewEntrenos();entPersist()}
+  else if(S.tab==="wellness")main.innerHTML=banner+viewWellness();
   else main.innerHTML=banner+viewEquipo();
   bind();
 }
@@ -818,6 +828,59 @@ function bindEntrenos(){
   document.querySelectorAll('[data-er][data-k="ejercicio"]').forEach(inp=>inp.oninput=()=>{const p=document.querySelector('[data-opo="'+inp.dataset.er+'"]');if(p){const o=isOpo(inp.value);p.className="pill "+(o?"bad":"ok");p.textContent=o?"Oposición":"Sin oposición"}});
 }
 
+/* ---------- Wellness: respuestas del formulario de los jugadores (pestaña WELLNESS, solo lectura).
+   A marca temporal, B jugador, C RPE de partido, D fatiga antes del partido, E fatiga hoy, F estrés, G comentarios, H motivación. */
+async function loadWellness(){
+  const v=await sget("WELLNESS!A1:H3000");
+  S.well.rows=v.slice(1).map(r=>{const ts=String(r[0]||"").trim();return {iso:dmyToIso(ts.slice(0,10)),hora:ts.slice(11,16),name:String(r[1]||"").trim(),
+    rpe:num(r[2]),fatAntes:num(r[3]),fatHoy:num(r[4]),estres:num(r[5]),com:String(r[6]||"").trim(),motiv:num(r[7])}}).filter(r=>r.iso&&r.name);
+  S.well.loaded=true;
+}
+const wellKey=n=>String(n||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").split(/\s+/)[0];
+/* Jugador del U22 si su nombre empieza como uno de los de la app (Babacar → Baba, Alexis Pou → Alexis). */
+function wellU22(name){const k=wellKey(name);return S.players.some(p=>{const q=wellKey(p);return q&&(k===q||k.startsWith(q))})}
+/* A vigilar: un comentario, fatiga de hoy de 8 o más, o motivación de 2 o menos. */
+function wellAlert(r){return !!r.com||(r.fatHoy!=null&&r.fatHoy>=8)||(r.motiv!=null&&r.motiv<=2)}
+function viewWellness(){
+  const W=S.well;
+  if(!W.loaded)return `<div class="empty">Leyendo la pestaña WELLNESS…</div>`;
+  if(!W.rows.length)return `<div class="empty">La pestaña WELLNESS todavía no tiene respuestas.</div>`;
+  const weeks=[...new Set(W.rows.map(r=>mondayOf(r.iso)))].sort();
+  if(!W.week||!weeks.includes(W.week))W.week=weeks[weeks.length-1];
+  const wi=weeks.indexOf(W.week);
+  const inWeek=W.rows.filter(r=>mondayOf(r.iso)===W.week&&(W.all||wellU22(r.name)));
+  /* Si un jugador contesta dos veces la misma semana, vale la última. */
+  const last={};inWeek.forEach(r=>{last[r.name]=r});
+  const list=Object.values(last).sort((a,b)=>(wellAlert(b)-wellAlert(a))||a.name.localeCompare(b.name,"es"));
+  const prevOf=r=>W.rows.filter(x=>x.name===r.name&&mondayOf(x.iso)<W.week).pop();
+  const avg=k=>{const xs=list.map(r=>r[k]).filter(x=>x!=null);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null};
+  const faltan=W.all?[]:S.players.filter(p=>!list.some(r=>wellU22(r.name)&&wellKey(r.name).startsWith(wellKey(p))));
+  const nav=`<div class="panel"><div class="row" style="justify-content:space-between">
+      <button type="button" class="btn ghost" id="wlPrev"${wi<=0?" disabled":""}>‹</button>
+      <div style="text-align:center"><span class="label">Semana del</span><div style="font:600 20px/1.2 var(--display)">${esc(isoToDMY(W.week).slice(0,5))} al ${esc(isoToDMY(addDays(W.week,6)).slice(0,5))}</div></div>
+      <button type="button" class="btn ghost" id="wlNext"${wi>=weeks.length-1?" disabled":""}>›</button></div>
+    <div class="chips"><button type="button" data-wall="0" aria-pressed="${!W.all}">U22</button><button type="button" data-wall="1" aria-pressed="${W.all}">Todos</button></div></div>`;
+  const kpis=`<div class="kpis"><div class="kpi"><span class="label">Respuestas</span><b>${list.length}${W.all?"":"/"+S.players.length}</b><span class="note">${list.filter(wellAlert).length} a vigilar</span></div>
+    <div class="kpi"><span class="label">Fatiga hoy</span><b>${fmt(avg("fatHoy"),1)}</b><span class="note">media</span></div>
+    <div class="kpi"><span class="label">Motivación</span><b>${fmt(avg("motiv"),1)}</b><span class="note">media</span></div></div>`;
+  const num1=(lab,v,cls)=>`<div class="wnum ${cls||""}"><span>${lab}</span><b>${v==null?"–":fmt(v,0)}</b></div>`;
+  const cards=list.map(r=>{const pv=prevOf(r);const d=pv&&pv.fatHoy!=null&&r.fatHoy!=null?r.fatHoy-pv.fatHoy:null;
+    return `<div class="wcard${wellAlert(r)?" alert":""}"><div class="whead"><b>${esc(r.name)}</b><span class="note">${esc(isoToDMY(r.iso).slice(0,5))} ${esc(r.hora)}</span></div>
+    <div class="wnums">${num1("RPE partido",r.rpe)}${num1("Fatiga antes",r.fatAntes)}${num1("Fatiga hoy",r.fatHoy,r.fatHoy>=8?"bad":"")}${num1("Estrés",r.estres)}${num1("Motivación",r.motiv,r.motiv!=null&&r.motiv<=2?"warn":"")}</div>
+    ${d!=null&&d!==0?`<span class="note">Fatiga hoy ${d>0?"+":""}${d} respecto a su respuesta anterior (${esc(isoToDMY(pv.iso).slice(0,5))})</span>`:""}
+    ${r.com?`<p class="wcom">${esc(r.com)}</p>`:""}</div>`}).join("");
+  return nav+kpis+`<div class="panel"><span class="label">Respuestas de la semana</span>
+    ${list.length?`<div class="list">${cards}</div>`:`<div class="empty">Nadie ha contestado esta semana${W.all?"":" del U22"}.</div>`}
+    ${faltan.length?`<div class="note">Sin contestar: ${faltan.map(esc).join(", ")}</div>`:""}</div>
+    <div class="note">Se marca en rojo a quien deja un comentario, tiene fatiga de hoy de 8 o más o motivación de 2 o menos. Los datos salen de la pestaña WELLNESS (el formulario de los jugadores); aquí solo se leen.</div>`;
+}
+function bindWellness(){
+  const W=S.well;const ws=()=>[...new Set(W.rows.map(r=>mondayOf(r.iso)))].sort();
+  const pv=document.getElementById("wlPrev");if(pv)pv.onclick=()=>{const w=ws(),i=w.indexOf(W.week);if(i>0){W.week=w[i-1];render()}};
+  const nx=document.getElementById("wlNext");if(nx)nx.onclick=()=>{const w=ws(),i=w.indexOf(W.week);if(i<w.length-1){W.week=w[i+1];render()}};
+  document.querySelectorAll("[data-wall]").forEach(b=>b.onclick=()=>{W.all=b.dataset.wall==="1";render()});
+}
+
 function viewEquipo(){
   const up=!!S.assets&&!!S.db;
   const rows=S.players.map(n=>`<div class="ph-row"><div class="av">${avatar(n)}</div><div class="nm" style="font:600 20px/1.1 var(--display)">${esc(n)}</div>
@@ -841,7 +904,7 @@ async function uploadPhoto(name,file){
 }
 
 function bind(){
-  bindCharts();bindEntrenos();
+  bindCharts();bindEntrenos();bindWellness();
   document.querySelectorAll("[data-player]").forEach(b=>b.onclick=()=>S.kiosk?openKioskScale(b.dataset.player):openScale(b.dataset.player));
   const ko=document.getElementById("kioskOn");if(ko)ko.onclick=()=>{S.kiosk=true;render();window.scrollTo(0,0)};
   document.querySelectorAll("[data-prac],[data-pick]").forEach(b=>b.onclick=()=>{S.practice=+(b.dataset.prac||b.dataset.pick);S.practiceSet=true;render()});
@@ -868,7 +931,8 @@ function bind(){
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=async()=>{S.tab=b.dataset.tab;render();
   if(S.tab==="carga"&&!S.loads[S.loadTab]&&S.mcp){try{await loadLoad(S.loadTab)}catch(e){S.err=errText(e)}render()}
   if(S.tab==="pesos"&&!S.pesos&&S.mcp){try{await loadPesos()}catch(e){S.err=errText(e)}render()}
-  if(S.tab==="entrenos"&&!S.ent.loaded&&S.mcp){try{await loadEntrenos()}catch(e){S.err=errText(e)}render()}});
+  if(S.tab==="entrenos"&&!S.ent.loaded&&S.mcp){try{await loadEntrenos()}catch(e){S.err=errText(e)}render()}
+  if(S.tab==="wellness"&&!S.well.loaded&&S.mcp){try{await loadWellness()}catch(e){S.err=errText(e)}render()}});
 (()=>{const h=document.getElementById("title");let t=null;const stop=()=>{clearTimeout(t);t=null};
   h.addEventListener("pointerdown",()=>{if(!S.kiosk)return;stop();t=setTimeout(()=>{S.kiosk=false;document.getElementById("sheetHost").innerHTML="";render();toast("Modo entrenador")},2000)});
   ["pointerup","pointerleave","pointercancel"].forEach(ev=>h.addEventListener(ev,stop));
