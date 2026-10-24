@@ -54,7 +54,7 @@ header button{background:transparent;border:1px solid currentColor;border-radius
 main{flex:1;padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
-  display:grid;grid-template-columns:repeat(7,1fr);padding-bottom:env(safe-area-inset-bottom,0px);
+  display:grid;grid-template-columns:repeat(8,1fr);padding-bottom:env(safe-area-inset-bottom,0px);
   padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 nav.tabs button{background:none;border:0;padding:10px 4px 12px;font:600 15px/1.1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 nav.tabs button[aria-selected="true"]{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
@@ -190,6 +190,14 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .wnum.ok b{color:var(--ok)}
 .wcard{background:var(--surface-2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .wcard.alert{box-shadow:inset 4px 0 0 var(--bad)}
+.mpsum{display:flex;flex-direction:column;gap:4px}
+.mps{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(4,minmax(40px,1fr));gap:6px;align-items:center;padding:6px 8px;border-radius:8px;background:var(--surface-2)}
+.mps.mph{background:none;padding-block:0;font-size:12px;color:var(--muted)}.mps b{font:600 17px/1 var(--display);text-align:center}.mps.mph span{text-align:center}.mps.mph span:first-child{text-align:left}
+.mpn{font:600 16px/1.1 var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mpr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(60px,2fr) 52px;gap:8px;align-items:center}
+.mpbar{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}.mpbar i{display:block;height:100%;background:var(--line)}.mpr.u22 .mpbar i{background:var(--accent)}
+.mpr .mpm{font:600 16px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
+.mpr:not(.u22) .mpn{font-weight:500;color:var(--muted)}
 .whead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.whead b{font:600 19px/1.1 var(--display)}
 .wnums{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .wnum{background:var(--surface);border-radius:8px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;gap:2px}
@@ -201,7 +209,7 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .erow .em{font:600 18px/1 var(--display)}
 .confirm{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;text-align:center}
 .confirm .big{width:96px;height:96px;border-radius:20px;display:grid;place-items:center;font:700 60px/1 var(--display);color:#fff}
-@media (max-width:420px){nav.tabs button{font-size:11px;letter-spacing:0;padding-inline:1px}.drow .wide{grid-column:1/-1}.drow .half{grid-column:span 3}.wrow{grid-template-columns:minmax(0,1fr) 80px 60px}.wrow .imc{display:none}}
+@media (max-width:420px){nav.tabs button{font-size:10px;letter-spacing:0;padding-inline:1px}.drow .wide{grid-column:1/-1}.drow .half{grid-column:span 3}.wrow{grid-template-columns:minmax(0,1fr) 80px 60px}.wrow .imc{display:none}}
 @media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:active{transform:scale(.97)}}
 </style>
 
@@ -221,6 +229,7 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
     <button role="tab" data-tab="pesos" aria-selected="false">Pesos</button>
     <button role="tab" data-tab="entrenos" aria-selected="false">Entrenos</button>
     <button role="tab" data-tab="wellness" aria-selected="false">Wellness</button>
+    <button role="tab" data-tab="partidos" aria-selected="false">Partidos</button>
     <button role="tab" data-tab="equipo" aria-selected="false">Equipo</button>
   </nav>
 </div>
@@ -243,7 +252,7 @@ const RPE_COL=["","#3d8fb8","#3a9aa0","#3fa27f","#5fa851","#93a83c","#c79a26","#
 const S={tab:"sesion",date:isoToday(),practice:1,mcp:null,db:null,assets:null,
   rpe:{rows:[],next:2,loaded:false},tiempo:{byDM:{},loaded:false},pesos:null,panel:null,
   loads:{},loadTab:"ALEXIS",photos:{},players:RPE_NAMES.slice(),err:null,pesoDate:isoToday(),
-  horario:{rows:[],next:2,loaded:false},week:mondayOf(isoToday()),draft:null,reading:false,readMsg:"",sample:null,imgOK:false,practiceSet:false,kiosk:false,well:{rows:[],loaded:false,week:null,all:false},ent:{rows:[],next:2,loaded:false,date:isoToday(),ses:1,mode:"plan",draft:null,removed:[],reading:false,msg:"",text:"",fname:"",saving:false}};
+  horario:{rows:[],next:2,loaded:false},week:mondayOf(isoToday()),draft:null,reading:false,readMsg:"",sample:null,imgOK:false,practiceSet:false,kiosk:false,well:{rows:[],loaded:false,week:null,all:false},mp:{rows:[],loaded:false,missing:false,all:false,busy:false},ent:{rows:[],next:2,loaded:false,date:isoToday(),ses:1,mode:"plan",draft:null,removed:[],reading:false,msg:"",text:"",fname:"",saving:false}};
 function mondayOf(iso){const d=new Date(iso+"T12:00:00");const k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return toIso(d)}
 function toIso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function addDays(iso,n){const d=new Date(iso+"T12:00:00");d.setDate(d.getDate()+n);return toIso(d)}
@@ -318,7 +327,7 @@ async function loadAll(){
   try{
     await Promise.all([loadRPE(),loadTiempo(),loadHorario().catch(()=>{S.horario.loaded=true})]);
     pickPractice();render();
-    await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null,(S.tab==="wellness"||S.well.loaded)?loadWellness():null]);
+    await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null,(S.tab==="wellness"||S.well.loaded)?loadWellness():null,(S.tab==="partidos"||S.mp.loaded)?loadPartidos():null]);
     const t=new Date();setSync("Hoja al día · "+t.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}));
   }catch(e){S.err=errText(e);setSync("Sin conexión con la hoja")}
   render();
@@ -375,6 +384,7 @@ function render(){
   else if(S.tab==="pesos")main.innerHTML=banner+viewPesos();
   else if(S.tab==="entrenos"){main.innerHTML=banner+viewEntrenos();entPersist()}
   else if(S.tab==="wellness")main.innerHTML=banner+viewWellness();
+  else if(S.tab==="partidos")main.innerHTML=banner+viewPartidos();
   else main.innerHTML=banner+viewEquipo();
   bind();
 }
@@ -899,6 +909,62 @@ function bindWellness(){
   document.querySelectorAll("[data-wall]").forEach(b=>b.onclick=()=>{W.all=b.dataset.wall==="1";render()});
 }
 
+/* ---------- Partidos: minutos jugados en cada partido de Liga U22.
+   Los apunta el Apps Script de la hoja cada mañana desde las fichas de gigantes.com (pestaña MINUTOS PARTIDO, solo lectura):
+   A fecha, B jornada, C rival, D casa/fuera, E resultado, F dorsal, G jugador (ficha), H jugador app, I minutos, J mm:ss, K id FEB. */
+async function loadPartidos(){
+  let v;
+  try{v=await sget("'MINUTOS PARTIDO'!A1:K3000")}
+  catch(e){if(/MINUTOS PARTIDO|Unable to parse range|no existe/i.test(e&&e.message||"")){S.mp.rows=[];S.mp.missing=true;S.mp.loaded=true;return}throw e}
+  S.mp.missing=false;
+  S.mp.rows=v.slice(1).map(r=>({iso:dmyToIso(r[0]),jor:String(r[1]||"").trim(),rival:String(r[2]||"").trim(),casa:String(r[3]||"").trim()==="Casa",
+    res:String(r[4]||"").trim(),dorsal:String(r[5]||"").trim(),ficha:String(r[6]||"").trim(),app:String(r[7]||"").trim(),min:num(r[8]),txt:String(r[9]||"").trim(),id:String(r[10]||"").trim()}))
+    .filter(r=>r.iso&&r.ficha&&r.min!=null);
+  S.mp.loaded=true;
+}
+const mpName=r=>r.app||r.ficha.replace(/^([A-ZÀ-Ý]{1,3}\.)\s*(\S+).*$/,(m,i,a)=>i+" "+a.charAt(0)+a.slice(1).toLowerCase());
+const mpTxt=m=>{const a=Math.floor(m),b=Math.round((m-a)*60);return b===60?(a+1)+":00":a+":"+String(b).padStart(2,"0")};
+function viewPartidos(){
+  const M=S.mp,canRefresh=!!window.U22_CONFIG;
+  const refresh=canRefresh?`<button type="button" class="btn ghost" id="mpRefresh"${M.busy?" disabled":""}>${M.busy?"Buscando en Gigantes…":"Buscar partidos ahora"}</button>`:"";
+  if(!M.loaded)return `<div class="empty">Leyendo la pestaña MINUTOS PARTIDO…</div>`;
+  if(!M.rows.length)return `<div class="panel"><span class="label">Minutos de partido</span>
+    <div class="empty">${M.missing?"La hoja todavía no tiene la pestaña MINUTOS PARTIDO.":"Todavía no hay minutos apuntados."}</div>
+    <div class="note">Los apunta el script de la hoja cada mañana, leyendo las fichas de la Liga U22 en gigantes.com. Si acabas de instalarlo, en el editor de Apps Script ejecuta <b>instalarDisparador</b> una vez.</div>${refresh}</div>`;
+  const isU=r=>!!r.app&&S.players.includes(r.app);
+  const games={};M.rows.forEach(r=>{(games[r.id||r.iso]=games[r.id||r.iso]||{iso:r.iso,jor:r.jor,rival:r.rival,casa:r.casa,res:r.res,rows:[]}).rows.push(r)});
+  const list=Object.values(games).sort((a,b)=>b.iso.localeCompare(a.iso));
+  const sel=r=>M.all||isU(r);
+  const byP={};M.rows.filter(sel).forEach(r=>{const k=mpName(r);const o=byP[k]=byP[k]||{name:k,u:isU(r),pj:0,tot:0,last:null,lastIso:""};o.pj++;o.tot+=r.min;if(r.iso>o.lastIso){o.lastIso=r.iso;o.last=r.min}});
+  const sum=Object.values(byP).sort((a,b)=>b.tot/b.pj-a.tot/a.pj);
+  const missing=M.all?[]:S.players.filter(p=>!byP[p]);
+  const head=`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Minutos por jugador · ${list.length} partido${list.length===1?"":"s"}</span>
+      <div class="chips"><button type="button" data-mpall="0" aria-pressed="${!M.all}">U22</button><button type="button" data-mpall="1" aria-pressed="${M.all}">Todos</button></div></div>
+    <div class="mpsum" role="table"><div class="mps mph" role="row"><span>Jugador</span><span>PJ</span><span>Media</span><span>Total</span><span>Último</span></div>
+    ${sum.map(o=>`<div class="mps" role="row"><span class="mpn">${esc(o.name)}</span><b>${o.pj}</b><b>${mpTxt(o.tot/o.pj)}</b><b>${fmt(o.tot,0)}</b><b>${o.last==null?"–":mpTxt(o.last)}</b></div>`).join("")}</div>
+    ${missing.length?`<div class="note">Sin minutos en ningún partido: ${missing.map(esc).join(", ")}</div>`:""}
+    ${refresh}</div>`;
+  const cards=list.map(g=>{
+    const rows=g.rows.filter(sel).sort((a,b)=>b.min-a.min);
+    const t=S.tiempo.byDM[isoToDM(g.iso)];
+    const res=g.res?`<span class="pill">${esc(g.res)}</span>`:"";
+    return `<div class="panel"><div class="whead"><b style="font:600 19px/1.1 var(--display)">${g.casa?"vs":"en"} ${esc(g.rival)}</b>${res}</div>
+      <span class="note">${g.jor?"Jornada "+esc(g.jor)+" · ":""}${esc(niceDate(g.iso))}</span>
+      ${rows.length?`<div class="list" style="gap:6px">${rows.map(r=>`<div class="mpr${isU(r)?" u22":""}"><span class="mpn">${esc(mpName(r))}</span><span class="mpbar"><i style="width:${Math.min(100,r.min/40*100).toFixed(1)}%"></i></span><span class="mpm">${esc(r.txt||mpTxt(r.min))}</span></div>`).join("")}</div>`
+        :`<div class="note">No jugó ninguno de los jugadores con RPE.</div>`}
+      ${t&&t.p1!=null?`<div class="note">En BD TIEMPO este día cuenta ${fmt(t.p1,0)} min de Practice 1 para todos.</div>`:""}</div>`}).join("");
+  return head+cards+`<div class="note">Minutos reales de cada partido, sacados de las fichas de la Liga U22 en gigantes.com. El script de la hoja los apunta cada mañana en MINUTOS PARTIDO; aquí solo se leen y no cambian la carga.</div>`;
+}
+function bindPartidos(){
+  document.querySelectorAll("[data-mpall]").forEach(b=>b.onclick=()=>{S.mp.all=b.dataset.mpall==="1";render()});
+  const rf=document.getElementById("mpRefresh");
+  if(rf)rf.onclick=async()=>{S.mp.busy=true;render();
+    try{const r=await S.mcp.callTool(GS,"refresh_matches",{});const p=(r&&r.payload)||{};await loadPartidos();
+      toast(p.busy?"Ya se estaba buscando. Prueba en un minuto.":(p.leidos?"Minutos nuevos de "+p.leidos+" partido"+(p.leidos===1?"":"s"):"No hay minutos nuevos todavía"))}
+    catch(e){toast(errText(e))}
+    S.mp.busy=false;render()};
+}
+
 function viewEquipo(){
   const up=!!S.assets&&!!S.db;
   const rows=S.players.map(n=>`<div class="ph-row"><div class="av">${avatar(n)}</div><div class="nm" style="font:600 20px/1.1 var(--display)">${esc(n)}</div>
@@ -922,7 +988,7 @@ async function uploadPhoto(name,file){
 }
 
 function bind(){
-  bindCharts();bindEntrenos();bindWellness();
+  bindCharts();bindEntrenos();bindWellness();bindPartidos();
   document.querySelectorAll("[data-player]").forEach(b=>b.onclick=()=>S.kiosk?openKioskScale(b.dataset.player):openScale(b.dataset.player));
   const ko=document.getElementById("kioskOn");if(ko)ko.onclick=()=>{S.kiosk=true;render();window.scrollTo(0,0)};
   document.querySelectorAll("[data-prac],[data-pick]").forEach(b=>b.onclick=()=>{S.practice=+(b.dataset.prac||b.dataset.pick);S.practiceSet=true;render()});
@@ -950,7 +1016,8 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=async()=>{S.ta
   if(S.tab==="carga"&&!S.loads[S.loadTab]&&S.mcp){try{await loadLoad(S.loadTab)}catch(e){S.err=errText(e)}render()}
   if(S.tab==="pesos"&&!S.pesos&&S.mcp){try{await loadPesos()}catch(e){S.err=errText(e)}render()}
   if(S.tab==="entrenos"&&!S.ent.loaded&&S.mcp){try{await loadEntrenos()}catch(e){S.err=errText(e)}render()}
-  if(S.tab==="wellness"&&!S.well.loaded&&S.mcp){try{await loadWellness()}catch(e){S.err=errText(e)}render()}});
+  if(S.tab==="wellness"&&!S.well.loaded&&S.mcp){try{await loadWellness()}catch(e){S.err=errText(e)}render()}
+  if(S.tab==="partidos"&&!S.mp.loaded&&S.mcp){try{await loadPartidos()}catch(e){S.err=errText(e)}render()}});
 (()=>{const h=document.getElementById("title");let t=null;const stop=()=>{clearTimeout(t);t=null};
   h.addEventListener("pointerdown",()=>{if(!S.kiosk)return;stop();t=setTimeout(()=>{S.kiosk=false;document.getElementById("sheetHost").innerHTML="";render();toast("Modo entrenador")},2000)});
   ["pointerup","pointerleave","pointercancel"].forEach(ev=>h.addEventListener(ev,stop));
