@@ -98,6 +98,11 @@ input[type=date],input[type=number],input[type=text]{background:var(--surface);b
 .wrow{display:grid;grid-template-columns:minmax(0,1fr) 92px 70px 64px;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .wrow .nm{font:600 19px/1.1 var(--display);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wrow .sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wrow.tap{cursor:pointer}.wrow.tap:active{transform:scale(.99)}
+.ptab{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
+.ptab th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
+.ptab td{padding:9px 4px;border-bottom:1px solid var(--line)}.ptab .num,.ptab th:not(:first-child){text-align:right}
+.ptab .sub{font-size:12px;color:var(--muted)}
 .num{font-variant-numeric:tabular-nums}
 .pct{font:600 18px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
 .pill{display:inline-block;border-radius:999px;padding:3px 10px;font:600 14px/1.2 var(--display);letter-spacing:.04em;text-transform:uppercase}
@@ -175,6 +180,7 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .lhead input:focus{border-color:var(--line);background:var(--surface-2)}
 .lname{font:700 26px/1.1 var(--display);text-transform:uppercase}
 .lpist{font:600 17px/1.1 var(--display);color:var(--muted);text-align:right}
+.tfix{display:flex;align-items:center;gap:8px}.tfix .note{flex:1}.tfix input{width:84px;text-align:center;font:600 18px/1 var(--display);padding:6px}.tfix .mvb{width:auto;padding:0 10px;font-size:15px}
 .lrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .live .clock{font:700 52px/1 var(--display)}
 .live.on .clock{color:var(--accent)}
@@ -566,14 +572,48 @@ function viewPesos(){
   const panel={};(S.panel||[]).forEach(r=>{if(r[0])panel[r[0]]=r});
   const list=players.map(p=>{const pr=panel[p.name]||[];const pct=num(String(pr[6]||"").replace("%",""));
     const cls=pct==null?"":Math.abs(pct)>=5?"bad":Math.abs(pct)>=3?"warn":"";
-    return `<div class="wrow"><div style="min-width:0"><div class="nm">${esc(p.name)}</div><div class="sub">${esc(pr[3]||"–")} kg · ${esc(pr[4]||"")}</div></div>
+    return `<div class="wrow tap" data-peso="${p.row}" role="button" tabindex="0" aria-label="Ver pesajes de ${esc(p.name)}"><div style="min-width:0"><div class="nm">${esc(p.name)}</div><div class="sub">${esc(pr[3]||"–")} kg · ${esc(pr[4]||"")}</div></div>
       <div>${spark(p.vals)}</div><div class="pct ${cls?"":""}" style="color:${cls==="bad"?"var(--bad)":cls==="warn"?"var(--warn)":"var(--fg)"}">${esc(pr[6]||"")}</div><div class="sub imc" style="text-align:right">IMC<br><span class="num" style="color:var(--fg)">${esc(pr[8]||"–")}</span></div></div>`}).join("");
   const form=players.map(p=>`<div class="inrow"><label for="w-${p.row}">${esc(p.name)}</label><input id="w-${p.row}" data-row="${p.row}" type="text" inputmode="decimal" placeholder="kg" value="${p.cur==null?"":String(p.cur).replace(".",",")}"></div>`).join("");
-  return `<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Evolución desde el primer pesaje</span><span class="note">naranja ≥3 %, rojo ≥5 %</span></div><div class="list">${list}</div></div>
+  return `<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Evolución desde el primer pesaje</span><span class="note">naranja ≥3 %, rojo ≥5 %</span></div><div class="note">Toca un jugador para ver todos sus pesajes.</div><div class="list">${list}</div></div>
   <div class="panel"><span class="label">${exists?"Corregir pesaje":"Nuevo pesaje"}</span>
     <div class="field"><label class="label" for="pdate">Fecha</label><input id="pdate" type="date" value="${S.pesoDate}"></div>
     <div class="note">${exists?"Ya hay una columna "+esc(dm)+" en PESOS: al guardar se sobrescribe.":"Se creará la columna "+esc(dm)+" en PESOS. Deja vacío quien no se pese."}</div>
     <div class="list">${form}</div><button class="btn" id="savePeso" type="button">Guardar pesaje</button></div>`;
+}
+
+function pesoCol(d){return Math.abs(d)>=5?"var(--bad)":Math.abs(d)>=3?"var(--warn)":"var(--fg)"}
+function signed(n,dec){return (n>0?"+":n<0?"−":"±")+fmt(Math.abs(n),dec)}
+function pesoChart(h){
+  if(h.length<2)return "";
+  const W=320,H=150,L=8,R=8,T=22,B=22;const ks=h.map(x=>x.kg);
+  let lo=Math.min(...ks),hi=Math.max(...ks);const pad=Math.max(.6,(hi-lo)*.15);lo-=pad;hi+=pad;
+  const X=i=>L+i*(W-L-R)/(h.length-1),Y=k=>T+(hi-k)/(hi-lo)*(H-T-B);
+  const base=`<line x1="${L}" x2="${W-R}" y1="${Y(h[0].kg).toFixed(1)}" y2="${Y(h[0].kg).toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 3"/>`;
+  const path=h.map((x,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(x.kg).toFixed(1)).join(" ");
+  const pts=h.map((x,i)=>{const a=i===0?"start":i===h.length-1?"end":"middle";
+    return `<circle cx="${X(i).toFixed(1)}" cy="${Y(x.kg).toFixed(1)}" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/><text x="${X(i).toFixed(1)}" y="${(Y(x.kg)-9).toFixed(1)}" text-anchor="${a}" style="fill:var(--fg);font-weight:600">${fmt(x.kg,1)}</text><text x="${X(i).toFixed(1)}" y="${H-5}" text-anchor="${a}">${esc(x.dm)}</text>`}).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Evolución del peso">${base}<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>${pts}</svg>`;
+}
+function openPeso(row){
+  const r=(S.pesos||[])[row-1];if(!r||!r[0])return;
+  const hdr=S.pesos[0]||[];const alt=num(r[1]);
+  const h=[];const miss=[];
+  for(let c=2;c<hdr.length;c++){const dm=String(hdr[c]||"").trim();if(!dm)continue;const kg=num(r[c]);if(kg==null)miss.push(dm);else h.push({dm,kg})}
+  const host=document.getElementById("sheetHost");const close=()=>host.innerHTML="";
+  const first=h[0];
+  const rows=h.map((x,i)=>{const prev=i?h[i-1]:null;const dp=prev?x.kg-prev.kg:null;const df=x.kg-first.kg;const pf=df/first.kg*100;
+    return `<tr><td>${esc(x.dm)}</td><td class="num"><b>${fmt(x.kg,1)}</b></td><td class="num">${dp==null?"–":signed(dp,1)}</td><td class="num" style="color:${i?pesoCol(pf):"var(--muted)"}">${i?signed(df,1)+" <span class=\"sub\">("+signed(pf,1)+" %)</span>":"inicio"}</td></tr>`}).reverse().join("");
+  const last=h[h.length-1];
+  host.innerHTML=`<div class="sheet-bg" id="sbg"><div class="sheet" role="dialog" aria-label="Pesajes de ${esc(r[0])}">
+    <div class="row" style="justify-content:space-between"><h2>${esc(r[0])}</h2><button class="btn ghost" id="closeS" type="button">Cerrar</button></div>
+    ${h.length?`<div class="note">${h.length} pesaje${h.length>1?"s":""}${alt?" · "+fmt(alt,2)+" m · IMC actual "+fmt(last.kg/(alt*alt),1):""}${miss.length?" · sin pesar: "+miss.map(esc).join(", "):""}</div>
+    ${pesoChart(h)}
+    <table class="ptab"><thead><tr><th>Fecha</th><th>Kg</th><th>vs anterior</th><th>vs primero</th></tr></thead><tbody>${rows}</tbody></table>`
+    :`<div class="note">Todavía no tiene ningún pesaje.</div>`}
+  </div></div>`;
+  host.querySelector("#closeS").onclick=close;
+  host.querySelector("#sbg").onclick=e=>{if(e.target.id==="sbg")close()};
 }
 
 async function savePesos(){
@@ -709,6 +749,8 @@ let entImg=null;
 const ENT_KEY="u22-ent-borrador";
 function elapsed(x){return (x.tAcc||0)+(x.tStart?Date.now()-x.tStart:0)}
 function clockText(x){const t=Math.floor(elapsed(x)/1000);return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")}
+/* Corregir a mano (si se olvidó darle a Empezar o a Acabar): fija el tiempo y, si está en marcha, sigue contando desde ahí. */
+function setTimer(x,ms){ms=Math.max(0,Math.round(ms));x.tAcc=ms;if(x.tStart)x.tStart=Date.now();else x.minutos=ms?fmtMin(Math.round(ms/1000)/60):""}
 function stopTimer(x){if(!x.tStart)return;x.tAcc=elapsed(x);x.tStart=null;x.minutos=fmtMin(Math.round(x.tAcc/1000)/60)}
 function entPersist(){try{const E=S.ent;if(E.draft)localStorage.setItem(ENT_KEY,JSON.stringify({draft:E.draft,removed:E.removed||[],date:E.date,ses:E.ses,mode:E.mode}));else localStorage.removeItem(ENT_KEY)}catch(e){}}
 function entRestore(){try{const v=JSON.parse(localStorage.getItem(ENT_KEY)||"null");if(v&&Array.isArray(v.draft)&&v.draft.length)Object.assign(S.ent,{draft:v.draft,removed:v.removed||[],date:v.date||S.ent.date,ses:v.ses||1,mode:v.mode||"plan"})}catch(e){}}
@@ -762,6 +804,9 @@ function viewVivo(){
     <div class="lhead"><input type="text" class="lname" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="Nombre del ejercicio"><input type="text" class="lpist" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="Pistas"></div>
     <div class="lrow"><span class="clock num" data-clock="${i}">${clockText(x)}</span>
       <button type="button" class="btn big${x.tStart?"":" ghost"}" data-tgo="${i}">${x.tStart?"Acabar":(x.tAcc?"Seguir":"Empezar")}</button></div>
+    <div class="tfix"><span class="note">Corregir tiempo</span><button type="button" class="mvb" data-tadd="${i}|-1" aria-label="Quitar un minuto">−1′</button>
+      <input type="text" inputmode="decimal" data-tset="${i}" value="${x.tStart?"":esc(x.tAcc?clockText(x):(x.minutos||""))}" placeholder="${x.tStart?"poner":"12:30"}" aria-label="Tiempo del ejercicio (min o min:seg)">
+      <button type="button" class="mvb" data-tadd="${i}|1" aria-label="Añadir un minuto">+1′</button></div>
     <div class="row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}${moveBtns(i,d.length)}<span class="note">${x.minutos?"Apuntado: "+esc(x.minutos)+" min":""}${x.tAcc&&!x.tStart?` · <button type="button" class="linkbtn" data-trs="${i}">A cero</button>`:""}</span></div>
   </div>`).join("");
   return `<div class="list">${cards}</div><div class="panel">${entActions()}</div>`;
@@ -831,6 +876,11 @@ function bindEntrenos(){
     if(x.tStart){stopTimer(x);toast((x.ejercicio||"Ejercicio")+": "+x.minutos+" min")}
     else{E.draft.forEach((y,j)=>{if(j!==i)stopTimer(y)});x.tStart=Date.now()}
     render()});
+  document.querySelectorAll("[data-tadd]").forEach(b=>b.onclick=()=>{syncEnt();const [i,dm]=b.dataset.tadd.split("|").map(Number);const x=E.draft[i];setTimer(x,elapsed(x)+dm*60000);entPersist();render()});
+  document.querySelectorAll("[data-tset]").forEach(inp=>inp.onchange=()=>{syncEnt();const x=E.draft[+inp.dataset.tset];const v=inp.value.trim();
+    if(v===""){if(!x.tStart){x.tAcc=0;x.minutos=""}entPersist();render();return}
+    const m=parseMin(v);if(m==null||m<0||m>300){toast("Escribe el tiempo como 12 o 12:30");inp.value="";return}
+    setTimer(x,m*60000);entPersist();render()});
   document.querySelectorAll("[data-trs]").forEach(b=>b.onclick=()=>{syncEnt();const x=E.draft[+b.dataset.trs];x.tAcc=0;x.tStart=null;x.minutos="";render()});
   document.querySelectorAll("[data-er]").forEach(el=>el.addEventListener("change",()=>{syncEnt();entPersist()}));
   document.querySelectorAll('[data-er][data-k="ejercicio"]').forEach(inp=>inp.oninput=()=>{const p=document.querySelector('[data-opo="'+inp.dataset.er+'"]');if(p){const o=isOpo(inp.value);p.className="pill "+(o?"bad":"ok");p.textContent=o?"Oposición":"Sin oposición"}});
@@ -943,6 +993,7 @@ function bind(){
   document.querySelectorAll("[data-load]").forEach(b=>b.onclick=async()=>{S.loadTab=b.dataset.load;render();if(!S.loads[S.loadTab]&&S.mcp){try{await loadLoad(S.loadTab)}catch(e){S.err=errText(e)}render()}});
   const pd=document.getElementById("pdate");if(pd)pd.onchange=()=>{if(pd.value){S.pesoDate=pd.value;render()}};
   const sp=document.getElementById("savePeso");if(sp)sp.onclick=savePesos;
+  document.querySelectorAll("[data-peso]").forEach(b=>{b.onclick=()=>openPeso(+b.dataset.peso);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPeso(+b.dataset.peso)}}});
   document.querySelectorAll("[data-up]").forEach(i=>i.onchange=()=>{if(i.files&&i.files[0])uploadPhoto(i.dataset.up,i.files[0])});
 }
 
