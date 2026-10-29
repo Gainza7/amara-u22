@@ -180,6 +180,7 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .lhead input:focus{border-color:var(--line);background:var(--surface-2)}
 .lname{font:700 26px/1.1 var(--display);text-transform:uppercase}
 .lpist{font:600 17px/1.1 var(--display);color:var(--muted);text-align:right}
+.tfix{display:flex;align-items:center;gap:8px}.tfix .note{flex:1}.tfix input{width:84px;text-align:center;font:600 18px/1 var(--display);padding:6px}.tfix .mvb{width:auto;padding:0 10px;font-size:15px}
 .lrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .live .clock{font:700 52px/1 var(--display)}
 .live.on .clock{color:var(--accent)}
@@ -748,6 +749,8 @@ let entImg=null;
 const ENT_KEY="u22-ent-borrador";
 function elapsed(x){return (x.tAcc||0)+(x.tStart?Date.now()-x.tStart:0)}
 function clockText(x){const t=Math.floor(elapsed(x)/1000);return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")}
+/* Corregir a mano (si se olvidó darle a Empezar o a Acabar): fija el tiempo y, si está en marcha, sigue contando desde ahí. */
+function setTimer(x,ms){ms=Math.max(0,Math.round(ms));x.tAcc=ms;if(x.tStart)x.tStart=Date.now();else x.minutos=ms?fmtMin(Math.round(ms/1000)/60):""}
 function stopTimer(x){if(!x.tStart)return;x.tAcc=elapsed(x);x.tStart=null;x.minutos=fmtMin(Math.round(x.tAcc/1000)/60)}
 function entPersist(){try{const E=S.ent;if(E.draft)localStorage.setItem(ENT_KEY,JSON.stringify({draft:E.draft,removed:E.removed||[],date:E.date,ses:E.ses,mode:E.mode}));else localStorage.removeItem(ENT_KEY)}catch(e){}}
 function entRestore(){try{const v=JSON.parse(localStorage.getItem(ENT_KEY)||"null");if(v&&Array.isArray(v.draft)&&v.draft.length)Object.assign(S.ent,{draft:v.draft,removed:v.removed||[],date:v.date||S.ent.date,ses:v.ses||1,mode:v.mode||"plan"})}catch(e){}}
@@ -801,6 +804,9 @@ function viewVivo(){
     <div class="lhead"><input type="text" class="lname" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="Nombre del ejercicio"><input type="text" class="lpist" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="Pistas"></div>
     <div class="lrow"><span class="clock num" data-clock="${i}">${clockText(x)}</span>
       <button type="button" class="btn big${x.tStart?"":" ghost"}" data-tgo="${i}">${x.tStart?"Acabar":(x.tAcc?"Seguir":"Empezar")}</button></div>
+    <div class="tfix"><span class="note">Corregir tiempo</span><button type="button" class="mvb" data-tadd="${i}|-1" aria-label="Quitar un minuto">−1′</button>
+      <input type="text" inputmode="decimal" data-tset="${i}" value="${x.tStart?"":esc(x.tAcc?clockText(x):(x.minutos||""))}" placeholder="${x.tStart?"poner":"12:30"}" aria-label="Tiempo del ejercicio (min o min:seg)">
+      <button type="button" class="mvb" data-tadd="${i}|1" aria-label="Añadir un minuto">+1′</button></div>
     <div class="row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}${moveBtns(i,d.length)}<span class="note">${x.minutos?"Apuntado: "+esc(x.minutos)+" min":""}${x.tAcc&&!x.tStart?` · <button type="button" class="linkbtn" data-trs="${i}">A cero</button>`:""}</span></div>
   </div>`).join("");
   return `<div class="list">${cards}</div><div class="panel">${entActions()}</div>`;
@@ -870,6 +876,11 @@ function bindEntrenos(){
     if(x.tStart){stopTimer(x);toast((x.ejercicio||"Ejercicio")+": "+x.minutos+" min")}
     else{E.draft.forEach((y,j)=>{if(j!==i)stopTimer(y)});x.tStart=Date.now()}
     render()});
+  document.querySelectorAll("[data-tadd]").forEach(b=>b.onclick=()=>{syncEnt();const [i,dm]=b.dataset.tadd.split("|").map(Number);const x=E.draft[i];setTimer(x,elapsed(x)+dm*60000);entPersist();render()});
+  document.querySelectorAll("[data-tset]").forEach(inp=>inp.onchange=()=>{syncEnt();const x=E.draft[+inp.dataset.tset];const v=inp.value.trim();
+    if(v===""){if(!x.tStart){x.tAcc=0;x.minutos=""}entPersist();render();return}
+    const m=parseMin(v);if(m==null||m<0||m>300){toast("Escribe el tiempo como 12 o 12:30");inp.value="";return}
+    setTimer(x,m*60000);entPersist();render()});
   document.querySelectorAll("[data-trs]").forEach(b=>b.onclick=()=>{syncEnt();const x=E.draft[+b.dataset.trs];x.tAcc=0;x.tStart=null;x.minutos="";render()});
   document.querySelectorAll("[data-er]").forEach(el=>el.addEventListener("change",()=>{syncEnt();entPersist()}));
   document.querySelectorAll('[data-er][data-k="ejercicio"]').forEach(inp=>inp.oninput=()=>{const p=document.querySelector('[data-opo="'+inp.dataset.er+'"]');if(p){const o=isOpo(inp.value);p.className="pill "+(o?"bad":"ok");p.textContent=o?"Oposición":"Sin oposición"}});
