@@ -392,7 +392,7 @@ function viewSesion(){
   const planNote=(min==null&&cur&&cur.min)?`<div class="banner info">Previsto en el horario: ${cur.min} min. Confírmalo o cámbialo y pulsa Guardar tiempo.</div>`:"";
   const head=`<div class="panel">${planBar}
     <div class="row" style="justify-content:space-between">
-      <div class="field"><label class="label" for="fecha">Fecha</label><input id="fecha" type="date" value="${S.date}"></div>
+      <div class="field"><label class="label" for="fecha">Fecha</label><div style="display:flex;align-items:center;gap:10px"><input id="fecha" type="date" value="${S.date}"><b style="font:700 22px var(--display);color:var(--accent);text-transform:capitalize;white-space:nowrap">${esc(new Date(S.date+"T12:00:00").toLocaleDateString("es-ES",{weekday:"long"}))}</b></div></div>
       <div class="field"><span class="label">Sesión</span><div class="seg" role="group">
         <button type="button" data-prac="1" aria-pressed="${S.practice===1}">Practice 1</button>
         <button type="button" data-prac="2" aria-pressed="${S.practice===2}">Practice 2</button>
