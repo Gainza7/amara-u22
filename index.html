@@ -182,6 +182,16 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .lpist{font:600 17px/1.1 var(--display);color:var(--muted);text-align:right}
 .tfix{display:flex;align-items:center;gap:8px}.tfix .note{flex:1}.tfix input{width:84px;text-align:center;font:600 18px/1 var(--display);padding:6px}.tfix .mvb{width:auto;padding:0 10px;font-size:15px}
 .lrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tally{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tcol{display:flex;flex-direction:column;gap:6px;background:var(--surface-2);border-radius:12px;padding:8px}
+.tbtn{display:flex;align-items:center;gap:10px;min-height:64px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);padding:6px 12px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.tbtn:active{transform:scale(.97);background:var(--surface-2)}
+.tbtn .tsym{font:700 34px/1 var(--display);color:var(--accent);min-width:22px;text-align:center}
+.tbtn .tlab{flex:1;text-align:left;font-size:13px;color:var(--muted);line-height:1.2}
+.tbtn b{font:700 32px/1 var(--display)}
+.tfoot{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:28px}
+.tmarks{font:600 15px/1.2 var(--display);color:var(--muted);letter-spacing:2px;overflow-wrap:anywhere;flex:1}
+.tfoot .mvb{width:auto;height:30px;padding:0 10px;font-size:14px}
 .live .clock{font:700 52px/1 var(--display)}
 .live.on .clock{color:var(--accent)}
 .btn.big{font-size:24px;padding:16px 26px;min-width:150px}
@@ -726,7 +736,8 @@ async function saveDraft(){
   render();
 }
 
-/* ---------- Entrenos: ejercicios por sesión en 'ENTRENOS DATOS' (A fecha, B sesión, C ejercicio, D minutos, H pistas, I notas antiguas).
+/* ---------- Entrenos: ejercicios por sesión en 'ENTRENOS DATOS' (A fecha, B sesión, C ejercicio, D minutos, H pistas, I notas antiguas,
+   J medias pistas jugadas "+", K pistas enteras corridas "l": el recuento que Iñigo hacía en papel).
    E:G son ARRAYFORMULA en la hoja (oposición, min oposición, semana): nunca se escriben desde aquí. */
 const ENT="'ENTRENOS DATOS'";
 const isOpo=n=>/X[1-9]|RITME/i.test(String(n||""));
@@ -736,10 +747,14 @@ function fmtMin(n){if(n==null)return "";const m=Math.floor(n),s=Math.round((n-m)
 function normPistas(v){const s=String(v||"").trim();const k=s.replace(/\s+/g,"").toLowerCase();
   if(k==="1/2")return "HC";if(k==="1/2+1")return "HC+FC";if(k==="1/2+2")return "HC+2FC";if(k==="1")return "FC";return s.toUpperCase()}
 async function loadEntrenos(){
-  const [ad,hi]=await Promise.all([sget(ENT+"!A1:D3000"),sget(ENT+"!H1:I3000")]);
-  S.ent.rows=ad.map((r,i)=>({row:i+1,iso:dmyToIso(r[0]),ses:num(r[1])||1,ej:(r[2]||"").trim(),min:num(r[3]),pistas:((hi[i]||[])[0]||"").trim(),notas:(hi[i]||[])[1]||""})).slice(1).filter(r=>r.iso&&r.ej);
+  const [ad,hi]=await Promise.all([sget(ENT+"!A1:D3000"),sget(ENT+"!H1:K3000")]);
+  S.ent.rows=ad.map((r,i)=>{const h=hi[i]||[];return {row:i+1,iso:dmyToIso(r[0]),ses:num(r[1])||1,ej:(r[2]||"").trim(),min:num(r[3]),pistas:(h[0]||"").trim(),notas:h[1]||"",medias:cnt(h[2]),enteras:cnt(h[3])}}).slice(1).filter(r=>r.iso&&r.ej);
   S.ent.next=Math.max(ad.length,hi.length,1)+1;S.ent.loaded=true;
 }
+/* Recuento de pistas: entero ≥ 0 (vacío = 0). */
+function cnt(v){const n=Math.round(num(v)||0);return n>0?n:0}
+const TALLY=[["medias","+","Media pista"],["enteras","l","Pista entera"]];
+function tallyTxt(x){const a=cnt(x.medias),b=cnt(x.enteras);return a||b?[a?a+" +":"",b?b+" l":""].filter(Boolean).join(" · "):""}
 function entFor(iso,ses){return S.ent.rows.filter(r=>r.iso===iso&&r.ses===ses)}
 function entTotals(list){const t=list.reduce((a,r)=>a+(r.min||0),0),o=list.reduce((a,r)=>a+(isOpo(r.ej)?(r.min||0):0),0);return {t,o,p:t?Math.round(o/t*100):0,sin:list.filter(r=>r.min==null).length}}
 function opoPill(name,i){const o=isOpo(name);return `<span class="pill ${o?"bad":"ok"}"${i!=null?` data-opo="${i}"`:""}>${o?"Oposición":"Sin oposición"}</span>`}
@@ -756,7 +771,7 @@ function entPersist(){try{const E=S.ent;if(E.draft)localStorage.setItem(ENT_KEY,
 function entRestore(){try{const v=JSON.parse(localStorage.getItem(ENT_KEY)||"null");if(v&&Array.isArray(v.draft)&&v.draft.length)Object.assign(S.ent,{draft:v.draft,removed:v.removed||[],date:v.date||S.ent.date,ses:v.ses||1,mode:v.mode||"plan"})}catch(e){}}
 setInterval(()=>{const d=S.ent.draft;if(!d||!d.some(x=>x.tStart))return;document.querySelectorAll("[data-clock]").forEach(el=>{const x=d[+el.dataset.clock];if(x)el.textContent=clockText(x)})},500);
 function entBlank(){return {ejercicio:"",pistas:"",minutos:""}}
-function entFromSaved(){return entFor(S.ent.date,S.ent.ses).map(r=>({row:r.row,ejercicio:r.ej,pistas:r.pistas,minutos:fmtMin(r.min),notas:r.notas}))}
+function entFromSaved(){return entFor(S.ent.date,S.ent.ses).map(r=>({row:r.row,ejercicio:r.ej,pistas:r.pistas,minutos:fmtMin(r.min),notas:r.notas,medias:r.medias,enteras:r.enteras}))}
 /* Flechas para cambiar el orden: al guardar, el orden de la lista decide qué fila ocupa cada ejercicio. */
 function moveBtns(i,n){return `<span class="mv"><button type="button" class="mvb" data-emv="${i}|-1" aria-label="Subir"${i===0?" disabled":""}>↑</button><button type="button" class="mvb" data-emv="${i}|1" aria-label="Bajar"${i===n-1?" disabled":""}>↓</button></span>`}
 function syncEnt(){document.querySelectorAll("[data-er]").forEach(el=>{const x=S.ent.draft&&S.ent.draft[+el.dataset.er];if(x)x[el.dataset.k]=el.value})}
@@ -776,7 +791,7 @@ function viewPlan(){
   const E=S.ent;const list=entFor(E.date,E.ses);const tt=entTotals(list);
   const saved=list.length?`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Guardado en la hoja</span>${E.draft?"":`<button type="button" class="btn ghost" id="eEdit" style="padding:6px 12px;font-size:15px">Editar</button>`}</div>
     <div class="kpis"><div class="kpi"><span class="label">Total</span><b>${fmt(tt.t,0)}</b><span class="note">min</span></div><div class="kpi"><span class="label">Oposición</span><b>${fmt(tt.o,0)}</b><span class="note">min</span></div><div class="kpi"><span class="label">% oposición</span><b>${tt.p}%</b>${tt.sin?`<span class="note">${tt.sin} sin minutos</span>`:""}</div></div>
-    <div class="list">${list.map(r=>`<div class="erow"><span class="pill ${isOpo(r.ej)?"bad":"ok"}">${isOpo(r.ej)?"Opos.":"Sin op."}</span><span class="en">${esc(r.ej)}${r.pistas?` <span class="note">· ${esc(r.pistas)}</span>`:""}</span><span class="em num">${r.min==null?"–":fmtMin(r.min)+"′"}</span></div>`).join("")}</div></div>`
+    <div class="list">${list.map(r=>`<div class="erow"><span class="pill ${isOpo(r.ej)?"bad":"ok"}">${isOpo(r.ej)?"Opos.":"Sin op."}</span><span class="en">${esc(r.ej)}${r.pistas?` <span class="note">· ${esc(r.pistas)}</span>`:""}${tallyTxt(r)?` <span class="note">· ${esc(tallyTxt(r))}</span>`:""}</span><span class="em num">${r.min==null?"–":fmtMin(r.min)+"′"}</span></div>`).join("")}</div></div>`
     :`<div class="empty">No hay ejercicios guardados para esta sesión.</div>`;
   const d=E.draft;
   const draft=d?`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Revisa antes de guardar</span><span class="note">${d.length} ejercicios</span></div>
@@ -785,6 +800,8 @@ function viewPlan(){
       <label style="grid-column:span 6">Ejercicio<input type="text" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="5X5"></label>
       <label style="grid-column:span 3">Pistas<input type="text" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="HC+FC"></label>
       <label style="grid-column:span 3">Minutos<input type="text" inputmode="decimal" data-er="${i}" data-k="minutos" value="${esc(x.minutos??"")}" placeholder="12:30"></label>
+      <label style="grid-column:span 3">Medias pistas (+)<input type="text" inputmode="numeric" data-er="${i}" data-k="medias" value="${cnt(x.medias)||""}" placeholder="0"></label>
+      <label style="grid-column:span 3">Pistas enteras (l)<input type="text" inputmode="numeric" data-er="${i}" data-k="enteras" value="${cnt(x.enteras)||""}" placeholder="0"></label>
       <div class="full row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}<span class="row" style="gap:8px">${moveBtns(i,d.length)}<button type="button" class="btn ghost" data-edel="${i}" style="padding:6px 10px;font-size:14px">Quitar</button></span></div>
     </div>`).join("")}</div>${entActions()}</div>`:"";
   const canRead=!!S.sample;
@@ -807,6 +824,9 @@ function viewVivo(){
     <div class="tfix"><span class="note">Corregir tiempo</span><button type="button" class="mvb" data-tadd="${i}|-1" aria-label="Quitar un minuto">−1′</button>
       <input type="text" inputmode="decimal" data-tset="${i}" value="${x.tStart?"":esc(x.tAcc?clockText(x):(x.minutos||""))}" placeholder="${x.tStart?"poner":"12:30"}" aria-label="Tiempo del ejercicio (min o min:seg)">
       <button type="button" class="mvb" data-tadd="${i}|1" aria-label="Añadir un minuto">+1′</button></div>
+    <div class="tally">${TALLY.map(([k,sym,lab])=>{const n=cnt(x[k]);return `<div class="tcol">
+      <button type="button" class="tbtn" data-ecnt="${i}|${k}|1" aria-label="Sumar ${lab.toLowerCase()} (${n})"><span class="tsym">${sym}</span><span class="tlab">${lab}</span><b class="num">${n}</b></button>
+      <div class="tfoot"><span class="tmarks" aria-hidden="true">${n?(n>40?sym.repeat(40)+"…":sym.repeat(n)):""}</span>${n?`<button type="button" class="mvb" data-ecnt="${i}|${k}|-1" aria-label="Quitar una ${lab.toLowerCase()}">−1</button>`:""}</div></div>`}).join("")}</div>
     <div class="row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}${moveBtns(i,d.length)}<span class="note">${x.minutos?"Apuntado: "+esc(x.minutos)+" min":""}${x.tAcc&&!x.tStart?` · <button type="button" class="linkbtn" data-trs="${i}">A cero</button>`:""}</span></div>
   </div>`).join("");
   return `<div class="list">${cards}</div><div class="panel">${entActions()}</div>`;
@@ -839,18 +859,19 @@ Devuelve SOLO un array JSON. No incluyas totales, sumas ni descansos. Ejemplo: [
 async function saveEntreno(){
   syncEnt();const E=S.ent;const d=E.draft;d.forEach(stopTimer);
   for(const x of d){if(!x.ejercicio.trim()){toast("Falta el nombre en algún ejercicio");return}
-    if(String(x.minutos).trim()!==""&&parseMin(x.minutos)==null){toast("Minutos no válidos en "+x.ejercicio);return}}
+    if(String(x.minutos).trim()!==""&&parseMin(x.minutos)==null){toast("Minutos no válidos en "+x.ejercicio);return}
+    for(const k of ["medias","enteras"])if(String(x[k]??"").trim()!==""&&!/^\d+$/.test(String(x[k]).trim())){toast("Pistas no válidas en "+x.ejercicio+" (pon un número entero)");return}}
   E.saving=true;render();
   try{
     /* Las filas que ya ocupaba la sesión se reparten en el orden de la lista; lo que sobre va al final de la hoja. */
     const slots=d.filter(x=>x.row).map(x=>x.row).sort((a,b)=>a-b);
-    const line=x=>{const m=parseMin(x.minutos);return {ad:[isoToDMY(E.date),E.ses,x.ejercicio.trim().toUpperCase(),m==null?"":Math.round(m*100)/100],hi:[normPistas(x.pistas),x.notas||""]}};
+    const line=x=>{const m=parseMin(x.minutos);const cj=[cnt(x.medias)||"",cnt(x.enteras)||""];return {ad:[isoToDMY(E.date),E.ses,x.ejercicio.trim().toUpperCase(),m==null?"":Math.round(m*100)/100],hi:[normPistas(x.pistas),x.notas||"",...cj],cj}};
     const fresh=[];
     for(let k=0;k<d.length;k++){const l=line(d[k]);
-      if(k<slots.length){const r=slots[k];await sset(ENT+"!A"+r+":D"+r,[l.ad]);if(d[k].notas===undefined)await sset(ENT+"!H"+r,[[l.hi[0]]]);else await sset(ENT+"!H"+r+":I"+r,[l.hi])}else fresh.push(l)}
-    for(const r of (E.removed||[])){await sset(ENT+"!A"+r+":D"+r,[["","","",""]]);await sset(ENT+"!H"+r+":I"+r,[["",""]])}
+      if(k<slots.length){const r=slots[k];await sset(ENT+"!A"+r+":D"+r,[l.ad]);if(d[k].notas===undefined){await sset(ENT+"!H"+r,[[l.hi[0]]]);await sset(ENT+"!J"+r+":K"+r,[l.cj])}else await sset(ENT+"!H"+r+":K"+r,[l.hi])}else fresh.push(l)}
+    for(const r of (E.removed||[])){await sset(ENT+"!A"+r+":D"+r,[["","","",""]]);await sset(ENT+"!H"+r+":K"+r,[["","","",""]])}
     if(fresh.length){const a=E.next,b=a+fresh.length-1;
-      await sset(ENT+"!A"+a+":D"+b,fresh.map(f=>f.ad));await sset(ENT+"!H"+a+":I"+b,fresh.map(f=>f.hi))}
+      await sset(ENT+"!A"+a+":D"+b,fresh.map(f=>f.ad));await sset(ENT+"!H"+a+":K"+b,fresh.map(f=>f.hi))}
     await loadEntrenos();E.draft=null;E.removed=[];entPersist();toast(d.length+" ejercicios guardados");
   }catch(e){toast(errText(e))}
   E.saving=false;render();
@@ -881,6 +902,9 @@ function bindEntrenos(){
     if(v===""){if(!x.tStart){x.tAcc=0;x.minutos=""}entPersist();render();return}
     const m=parseMin(v);if(m==null||m<0||m>300){toast("Escribe el tiempo como 12 o 12:30");inp.value="";return}
     setTimer(x,m*60000);entPersist();render()});
+  /* Contador de pistas: cada toque suma una (+ media pista, l pista entera); −1 por si se equivoca. Se guarda en el borrador al momento. */
+  document.querySelectorAll("[data-ecnt]").forEach(b=>b.onclick=()=>{syncEnt();const [i,k,dv]=b.dataset.ecnt.split("|");const x=E.draft[+i];if(!x)return;
+    x[k]=Math.max(0,cnt(x[k])+(+dv));entPersist();if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){};render()});
   document.querySelectorAll("[data-trs]").forEach(b=>b.onclick=()=>{syncEnt();const x=E.draft[+b.dataset.trs];x.tAcc=0;x.tStart=null;x.minutos="";render()});
   document.querySelectorAll("[data-er]").forEach(el=>el.addEventListener("change",()=>{syncEnt();entPersist()}));
   document.querySelectorAll('[data-er][data-k="ejercicio"]').forEach(inp=>inp.oninput=()=>{const p=document.querySelector('[data-opo="'+inp.dataset.er+'"]');if(p){const o=isOpo(inp.value);p.className="pill "+(o?"bad":"ok");p.textContent=o?"Oposición":"Sin oposición"}});
