@@ -69,6 +69,8 @@ input[type=date],input[type=number],input[type=text]{background:var(--surface);b
 .btn{background:var(--accent);color:var(--accent-fg);border:0;border-radius:10px;padding:10px 16px;font:600 17px/1 var(--display);letter-spacing:.05em;text-transform:uppercase}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
 .btn:disabled{opacity:.5}
+.picker{position:relative;overflow:hidden;cursor:pointer}.picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
+.dropping{outline:3px dashed var(--accent);outline-offset:4px}
 .note{font-size:14px;color:var(--muted)}
 .banner{border-radius:12px;padding:12px 14px;font-size:15px;display:flex;flex-direction:column;gap:8px}
 .banner.warn{background:var(--warn-soft);color:var(--fg);border:1px solid var(--warn)}
@@ -623,7 +625,7 @@ function viewHorario(){
     <div class="row"><button type="button" class="btn ghost" id="addRow">Añadir sesión</button><button type="button" class="btn" id="saveDraft">Guardar en la hoja</button><button type="button" class="btn ghost" id="dropDraft">Descartar</button></div></div>`:"";
   const upload=`<div class="panel"><span class="label">Subir el horario de la semana</span>
     ${canRead?`<div class="note">Sube una foto o captura del horario${S.imgOK?"":" (en esta vista solo se puede pegar texto)"}, o pega el texto. La app lo lee y te deja revisarlo antes de guardar. Si es un PDF, haz una captura.</div>
-    ${S.imgOK?`<div class="row"><label class="btn ghost" for="hfile">Elegir foto</label><input id="hfile" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0"><span class="note" id="hname">${esc(S.hname||"")}</span></div>`:""}
+    ${S.imgOK?`<div class="row"><label class="btn ghost picker">Elegir foto<input id="hfile" type="file" accept="image/*"></label><span class="note" id="hname">${esc(S.hname||"")||"o pega una captura (Ctrl+V / ⌘V) o arrástrala aquí"}</span></div>`:""}
     <textarea id="htext" placeholder="Lunes 18:00–19:45 pista. Martes 17:00 gimnasio 45 min, 18:00 pista…">${esc(S.htext||"")}</textarea>
     <div class="row"><button type="button" class="btn" id="readH"${S.reading?" disabled":""}>${S.reading?"Leyendo…":"Leer horario"}</button><button type="button" class="btn ghost" id="manual">Añadir a mano</button></div>
     ${S.readMsg?`<div class="note">${esc(S.readMsg)}</div>`:""}`
@@ -632,8 +634,13 @@ function viewHorario(){
 }
 
 let pendingImg=null;
+async function loadImg(file){
+  try{return await createImageBitmap(file)}catch(e){}
+  const u=URL.createObjectURL(file);
+  try{return await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=ko;i.src=u})}finally{setTimeout(()=>URL.revokeObjectURL(u),0)}
+}
 async function shrink(file){
-  const img=await createImageBitmap(file);const k=Math.min(1,1800/Math.max(img.width,img.height));
+  const img=await loadImg(file);const k=Math.min(1,1800/Math.max(img.width,img.height));
   const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
   c.getContext("2d").drawImage(img,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(r,"image/jpeg",0.88));
 }
@@ -748,7 +755,7 @@ function viewPlan(){
   const canRead=!!S.sample;
   const upload=`<div class="panel"><span class="label">Subir la foto del entreno</span>
     ${canRead?`<div class="note">Sube una foto o captura del entreno${S.imgOK?"":" (en esta vista solo se puede pegar texto)"}, o pega el texto. La app saca cada ejercicio con sus pistas y su tiempo, y te deja corregirlo antes de guardar.</div>
-    ${S.imgOK?`<div class="row"><label class="btn ghost" for="efile">Elegir foto</label><input id="efile" type="file" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0"><span class="note" id="ename">${esc(S.ent.fname||"")}</span></div>`:""}
+    ${S.imgOK?`<div class="row"><label class="btn ghost picker">Elegir foto<input id="efile" type="file" accept="image/*"></label><span class="note" id="ename">${esc(S.ent.fname||"")||"o pega una captura (Ctrl+V / ⌘V) o arrástrala aquí"}</span></div>`:""}
     <textarea id="etext" placeholder="5X0 1/2+1 12:30&#10;4X4X4 1/2 10'&#10;TIRO 15'">${esc(S.ent.text||"")}</textarea>
     <div class="row"><button type="button" class="btn" id="eRead"${S.ent.reading?" disabled":""}>${S.ent.reading?"Leyendo…":"Leer entreno"}</button><button type="button" class="btn ghost" id="eManual">Añadir a mano</button></div>
     ${S.ent.msg?`<div class="note">${esc(S.ent.msg)}</div>`:""}`
@@ -810,14 +817,27 @@ async function saveEntreno(){
   }catch(e){toast(errText(e))}
   E.saving=false;render();
 }
+/* Foto del horario o del entreno: botón, pegar (Ctrl/⌘+V) o arrastrar. En el ordenador el selector de archivos puede no abrirse dentro de la app de Claude; pegar o arrastrar no depende de él. */
+async function takeImg(f){
+  const ent=S.tab==="entrenos";if(!S.imgOK||!(ent||S.tab==="horario"))return false;
+  const name=f.name&&f.name!=="image.png"?f.name:"Captura pegada";
+  try{const b=await shrink(f);if(ent){entImg=b;S.ent.fname=name}else{pendingImg=b;S.hname=name}
+    const el=document.getElementById(ent?"ename":"hname");if(el)el.textContent=name;toast("Foto lista: pulsa "+(ent?"Leer entreno":"Leer horario"))}
+  catch(e){if(ent)entImg=null;else pendingImg=null;toast("No se pudo abrir esa imagen")}
+  return true;
+}
+function imgFrom(list){for(const it of Array.from(list||[])){const f=it.kind==="file"?it.getAsFile():it;if(f&&/^image\//.test(f.type))return f}return null}
+document.addEventListener("paste",e=>{const f=imgFrom(e.clipboardData&&e.clipboardData.items);if(f&&S.imgOK&&(S.tab==="entrenos"||S.tab==="horario")){e.preventDefault();takeImg(f)}});
+document.addEventListener("dragover",e=>{if(S.imgOK&&(S.tab==="entrenos"||S.tab==="horario")&&e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes("Files")){e.preventDefault();document.body.classList.add("dropping")}});
+document.addEventListener("dragleave",e=>{if(!e.relatedTarget)document.body.classList.remove("dropping")});
+document.addEventListener("drop",e=>{document.body.classList.remove("dropping");const f=imgFrom(e.dataTransfer&&e.dataTransfer.files);if(f&&S.imgOK&&(S.tab==="entrenos"||S.tab==="horario")){e.preventDefault();takeImg(f)}});
 function bindEntrenos(){
   const E=S.ent;
   document.querySelectorAll("[data-emode]").forEach(b=>b.onclick=()=>{syncEnt();E.mode=b.dataset.emode;
     if(E.mode==="vivo"&&!E.draft){const s=entFromSaved();if(s.length)E.draft=s}render()});
   const ef=document.getElementById("efecha");if(ef)ef.onchange=()=>{if(ef.value){E.date=ef.value;render()}};
   document.querySelectorAll("[data-eses]").forEach(b=>b.onclick=()=>{E.ses=+b.dataset.eses;if(E.mode==="vivo"&&!E.draft){const s=entFromSaved();if(s.length)E.draft=s}render()});
-  const fl=document.getElementById("efile");if(fl)fl.onchange=async()=>{const f=fl.files&&fl.files[0];if(!f)return;
-    try{entImg=await shrink(f);E.fname=f.name;document.getElementById("ename").textContent=f.name}catch(e){entImg=null;toast("No se pudo abrir esa imagen")}};
+  const fl=document.getElementById("efile");if(fl)fl.onchange=()=>{const f=fl.files&&fl.files[0];if(f)takeImg(f)};
   const rd=document.getElementById("eRead");if(rd)rd.onclick=readEntreno;
   const mn=document.getElementById("eManual");if(mn)mn.onclick=()=>{syncEnt();E.draft=(E.draft||[]).concat([entBlank()]);render()};
   const ad=document.getElementById("eAdd");if(ad)ad.onclick=()=>{syncEnt();E.draft.push(entBlank());render()};
@@ -929,8 +949,7 @@ function bind(){
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const [d,p]=b.dataset.go.split("|");S.date=d;S.practice=+p;S.practiceSet=true;S.tab="sesion";render();window.scrollTo(0,0)});
   const wp=document.getElementById("wprev");if(wp)wp.onclick=()=>{S.week=addDays(S.week,-7);render()};
   const wn=document.getElementById("wnext");if(wn)wn.onclick=()=>{S.week=addDays(S.week,7);render()};
-  const hf=document.getElementById("hfile");if(hf)hf.onchange=async()=>{const fl=hf.files&&hf.files[0];if(!fl)return;
-    try{pendingImg=await shrink(fl);S.hname=fl.name;document.getElementById("hname").textContent=fl.name}catch(e){pendingImg=null;toast("No se pudo abrir esa imagen")}};
+  const hf=document.getElementById("hfile");if(hf)hf.onchange=()=>{const fl=hf.files&&hf.files[0];if(fl)takeImg(fl)};
   const rh=document.getElementById("readH");if(rh)rh.onclick=readHorario;
   const mn=document.getElementById("manual");if(mn)mn.onclick=()=>{S.draft=(S.draft||[]).concat([{fecha:S.week,sesion:1,hora:"",tipo:"",minutos:null,notas:""}]);render()};
   const ar=document.getElementById("addRow");if(ar)ar.onclick=()=>{syncDraft();const last=S.draft[S.draft.length-1];S.draft.push({fecha:last?last.fecha:S.week,sesion:1,hora:"",tipo:"",minutos:null,notas:""});render()};
