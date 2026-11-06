@@ -816,7 +816,9 @@ function viewPlan(){
 }
 function viewVivo(){
   const E=S.ent;const d=E.draft;
-  if(!d||!d.length)return `<div class="empty">No hay ejercicios para esta sesión. Súbelos en Planificar o añade uno.</div><div class="row" style="justify-content:center"><button type="button" class="btn" id="eAddLive">Añadir ejercicio</button></div>`;
+  if(!d||!d.length){const rm=(E.removed||[]).length;
+    if(rm)return `<div class="empty">Has quitado todos los ejercicios. Dale a Guardar para borrarlos de la hoja, o a Descartar para dejarlo como estaba.</div><div class="panel">${entActions()}</div>`;
+    return `<div class="empty">No hay ejercicios para esta sesión. Súbelos en Planificar o añade uno.</div><div class="row" style="justify-content:center"><button type="button" class="btn" id="eAddLive">Añadir ejercicio</button></div>`}
   const cards=d.map((x,i)=>`<div class="live${x.tStart?" on":""}">
     <div class="lhead"><input type="text" class="lname" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="Nombre del ejercicio"><input type="text" class="lpist" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="Pistas"></div>
     <div class="lrow"><span class="clock num" data-clock="${i}">${clockText(x)}</span>
@@ -828,6 +830,8 @@ function viewVivo(){
       <button type="button" class="tbtn" data-ecnt="${i}|${k}|1" aria-label="Sumar ${lab.toLowerCase()} (${n})"><span class="tsym">${sym}</span><span class="tlab">${lab}</span><b class="num">${n}</b></button>
       <div class="tfoot"><span class="tmarks" aria-hidden="true">${n?(n>40?sym.repeat(40)+"…":sym.repeat(n)):""}</span>${n?`<button type="button" class="mvb" data-ecnt="${i}|${k}|-1" aria-label="Quitar una ${lab.toLowerCase()}">−1</button>`:""}</div></div>`}).join("")}</div>
     <div class="row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}${moveBtns(i,d.length)}<span class="note">${x.minutos?"Apuntado: "+esc(x.minutos)+" min":""}${x.tAcc&&!x.tStart?` · <button type="button" class="linkbtn" data-trs="${i}">A cero</button>`:""}</span></div>
+    ${E.askDel===i?`<div class="row lquit" style="justify-content:space-between"><span class="note">¿Quitar ${esc(x.ejercicio||"este ejercicio")}? ${x.row?"Se borrará de la hoja al guardar.":""}</span><span class="row" style="gap:8px"><button type="button" class="btn ghost" data-eqno="1" style="padding:6px 12px;font-size:14px">No</button><button type="button" class="btn" data-eqv="${i}" style="padding:6px 12px;font-size:14px;background:var(--bad);border-color:var(--bad)">Sí, quitar</button></span></div>`
+      :`<div class="row" style="justify-content:flex-end"><button type="button" class="linkbtn" data-eqv="${i}">No se ha hecho · Quitar</button></div>`}
   </div>`).join("");
   return `<div class="list">${cards}</div><div class="panel">${entActions()}</div>`;
 }
@@ -891,7 +895,7 @@ function bindEntrenos(){
   document.querySelectorAll("[data-edel]").forEach(b=>b.onclick=()=>{syncEnt();const [x]=E.draft.splice(+b.dataset.edel,1);if(x&&x.row)(E.removed=E.removed||[]).push(x.row);if(!E.draft.length&&!(E.removed||[]).length)E.draft=null;render()});
   document.querySelectorAll("[data-emv]").forEach(b=>b.onclick=()=>{syncEnt();const [i,dir]=b.dataset.emv.split("|").map(Number),j=i+dir;const d=E.draft;if(!d||j<0||j>=d.length)return;[d[i],d[j]]=[d[j],d[i]];entPersist();render()});
   const sv=document.getElementById("eSave");if(sv)sv.onclick=saveEntreno;
-  const dr=document.getElementById("eDrop");if(dr)dr.onclick=()=>{E.draft=null;E.removed=[];render()};
+  const dr=document.getElementById("eDrop");if(dr)dr.onclick=()=>{E.draft=null;E.removed=[];E.askDel=null;entPersist();render()};
   const ed=document.getElementById("eEdit");if(ed)ed.onclick=()=>{E.draft=entFromSaved();render()};
   document.querySelectorAll("[data-tgo]").forEach(b=>b.onclick=()=>{syncEnt();const i=+b.dataset.tgo,x=E.draft[i];
     if(x.tStart){stopTimer(x);toast((x.ejercicio||"Ejercicio")+": "+x.minutos+" min")}
@@ -905,6 +909,12 @@ function bindEntrenos(){
   /* Contador de pistas: cada toque suma una (+ media pista, l pista entera); −1 por si se equivoca. Se guarda en el borrador al momento. */
   document.querySelectorAll("[data-ecnt]").forEach(b=>b.onclick=()=>{syncEnt();const [i,k,dv]=b.dataset.ecnt.split("|");const x=E.draft[+i];if(!x)return;
     x[k]=Math.max(0,cnt(x[k])+(+dv));entPersist();if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){};render()});
+  /* Quitar en vivo un ejercicio que al final no se hace: primer toque pregunta, segundo quita. Si ya estaba en la hoja, su fila se vacía al guardar. */
+  document.querySelectorAll("[data-eqv]").forEach(b=>b.onclick=()=>{syncEnt();const i=+b.dataset.eqv;
+    if(E.askDel!==i){E.askDel=i;render();return}
+    E.askDel=null;const [x]=E.draft.splice(i,1);if(x){stopTimer(x);if(x.row)(E.removed=E.removed||[]).push(x.row)}
+    if(!E.draft.length&&!(E.removed||[]).length)E.draft=null;entPersist();toast((x&&x.ejercicio||"Ejercicio")+" quitado");render()});
+  document.querySelectorAll("[data-eqno]").forEach(b=>b.onclick=()=>{E.askDel=null;render()});
   document.querySelectorAll("[data-trs]").forEach(b=>b.onclick=()=>{syncEnt();const x=E.draft[+b.dataset.trs];x.tAcc=0;x.tStart=null;x.minutos="";render()});
   document.querySelectorAll("[data-er]").forEach(el=>el.addEventListener("change",()=>{syncEnt();entPersist()}));
   document.querySelectorAll('[data-er][data-k="ejercicio"]').forEach(inp=>inp.oninput=()=>{const p=document.querySelector('[data-opo="'+inp.dataset.er+'"]');if(p){const o=isOpo(inp.value);p.className="pill "+(o?"bad":"ok");p.textContent=o?"Oposición":"Sin oposición"}});
