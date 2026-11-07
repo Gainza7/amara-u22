@@ -197,21 +197,21 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .mpr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(60px,2fr) 52px;gap:8px;align-items:center}
 .mpbar{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}.mpbar i{display:block;height:100%;background:var(--line)}.mpr.u22 .mpbar i{background:var(--accent)}
 .mpr .mpm{font:600 16px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
-.mpr:not(.u22) .mpn{font-weight:500;color:var(--muted)}
+
 .mpp{display:grid;grid-template-columns:minmax(78px,1.1fr) minmax(60px,2fr) 54px 40px;gap:8px;align-items:center;width:100%;text-align:left;background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:8px 10px;color:var(--fg)}
-.mpp .mpn small{display:block;font:500 11px/1.2 var(--body);color:var(--muted)}.mpp .mpbar{height:14px;border-radius:7px;background:var(--surface)}.mpp.u22 .mpbar i{background:var(--accent)}.mpp:not(.u22) .mpn{color:var(--muted)}
+.mpp .mpn small{display:block;font:500 11px/1.2 var(--body);color:var(--muted)}.mpp .mpbar{height:14px;border-radius:7px;background:var(--surface)}.mpp.u22 .mpbar i{background:var(--accent)}
 .mpp.open{border-color:var(--accent)}.mpv{font:700 18px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
 .mpt{font:700 13px/1 var(--display);text-align:right;white-space:nowrap}.mpt.up{color:var(--ok)}.mpt.down{color:var(--bad)}.mpt.eq{color:var(--muted)}
 .mpcols{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 4px;align-items:stretch}
 .mpc{flex:1 0 46px;max-width:84px;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:8px 4px;color:var(--fg)}
 .mpc .mpv{font-size:15px;text-align:center}.mpc .mpt{text-align:center;min-height:13px}
 .mpcbar{width:26px;height:120px;border-radius:7px;background:var(--surface);display:flex;align-items:flex-end;overflow:hidden}.mpcbar i{display:block;width:100%;background:var(--line);border-radius:7px 7px 0 0}.mpc.u22 .mpcbar i{background:var(--accent)}
-.mpc .mpn{font:600 14px/1.1 var(--display);max-width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}.mpc:not(.u22) .mpn{color:var(--muted)}.mpc small{font-size:11px;color:var(--muted)}.mpc.open{border-color:var(--accent)}
-.mpheat thead th.u22{color:var(--fg)}.mpheat tbody th{font-size:13px}
+.mpc .mpn{font:600 14px/1.1 var(--display);max-width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}.mpc small{font-size:11px;color:var(--muted)}.mpc.open{border-color:var(--accent)}
+.mpheat thead th{color:var(--fg)}.mpheat tbody th{font-size:13px}
 .mpdet{background:var(--surface-2);border-radius:10px;padding:8px 10px;margin-top:-2px;display:flex;flex-direction:column;gap:4px}
 .mpheat{overflow-x:auto}.mpheat table{border-collapse:separate;border-spacing:3px;font-variant-numeric:tabular-nums}
 .mpheat th{font:600 12px/1.15 var(--display);color:var(--muted);text-align:center;white-space:nowrap;padding:2px 4px}.mpheat th span{font-weight:500;font-size:10px}
-.mpheat tbody th{text-align:left;font:600 14px/1.1 var(--display);color:var(--muted);position:sticky;left:0;background:var(--surface);padding-right:6px}.mpheat tbody th.u22{color:var(--fg)}
+.mpheat tbody th{text-align:left;font:600 14px/1.1 var(--display);color:var(--muted);position:sticky;left:0;background:var(--surface);padding-right:6px}.mpheat tbody th{color:var(--fg)}
 .mpheat td{min-width:40px;height:32px;text-align:center;border-radius:6px;font:700 15px/1 var(--display);color:var(--fg)}.mpheat td.no{color:var(--muted);background:var(--surface-2);font-weight:500}
 .mppick{position:relative;overflow:hidden;cursor:pointer}.mppick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
 .whead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.whead b{font:600 19px/1.1 var(--display)}
@@ -989,35 +989,36 @@ function viewPartidos(){
   const isU=r=>!!r.app&&S.players.includes(r.app);
   const games={};M.rows.forEach(r=>{(games[r.id||r.iso]=games[r.id||r.iso]||{key:r.id||r.iso,iso:r.iso,jor:r.jor,rival:r.rival,casa:r.casa,res:r.res,rows:[]}).rows.push(r)});
   const list=Object.values(games).sort((a,b)=>b.iso.localeCompare(a.iso));
-  const sel=r=>M.all||isU(r);
+  const sel=()=>true;
   const chron=list.slice().reverse();
   const byP={};M.rows.filter(sel).forEach(r=>{const k=mpName(r);const o=byP[k]=byP[k]||{name:k,u:isU(r),pj:0,tot:0,last:null,lastIso:"",by:{}};o.pj++;o.tot+=r.min;o.by[r.id||r.iso]=r.min;if(r.iso>o.lastIso){o.lastIso=r.iso;o.last=r.min}});
   const sort=M.sort||"media";const val=o=>sort==="total"?o.tot:sort==="ultimo"?(o.last||0):o.tot/o.pj;
   const sum=Object.values(byP).sort((a,b)=>val(b)-val(a)||a.name.localeCompare(b.name,"es"));
   const max=Math.max(1,...sum.map(val));
-  const missing=M.all?[]:S.players.filter(p=>!byP[p]);
+  const missing=S.players.filter(p=>!byP[p]);
   const vtxt=o=>sort==="total"?fmt(o.tot,0)+"′":mpTxt(val(o));
   /* Tendencia: último partido frente a su media (±2 min se considera igual). */
   const trend=o=>{if(o.pj<2)return "";const d=o.last-o.tot/o.pj;if(Math.abs(d)<2)return `<span class="mpt eq" title="Último partido como su media">=</span>`;
     return `<span class="mpt ${d>0?"up":"down"}" title="Último partido frente a su media">${d>0?"▲":"▼"}${Math.round(Math.abs(d))}′</span>`};
+  /* Tono según minutos: pocos minutos rosa claro, muchos granate oscuro. */
+  const mpShade=f=>`color-mix(in srgb,var(--brand) ${Math.round(Math.max(0,Math.min(1,f))*100)}%,#f2a3c4)`;
   const detail=o=>{const W=320,H=120,L=4,T=16,B=26,n=chron.length,bw=(W-2*L)/n,top=40;const y=v=>T+(H-T-B)*(1-v/top);const avg=o.tot/o.pj;
     const bars=chron.map((g,i)=>{const v=o.by[g.key];const x=L+i*bw;
       return (v==null?`<text x="${x+bw/2}" y="${y(0)-4}" text-anchor="middle">–</text>`
-        :`<rect x="${x+bw*.18}" y="${y(Math.min(v,top))}" width="${bw*.64}" height="${y(0)-y(Math.min(v,top))}" rx="3" fill="${o.u?"var(--accent)":"var(--muted)"}"/><text x="${x+bw/2}" y="${y(Math.min(v,top))-4}" text-anchor="middle" style="fill:var(--fg);font-weight:600">${Math.round(v)}</text>`)
+        :`<rect x="${x+bw*.18}" y="${y(Math.min(v,top))}" width="${bw*.64}" height="${y(0)-y(Math.min(v,top))}" rx="3" fill="${mpShade(v/35)}"/><text x="${x+bw/2}" y="${y(Math.min(v,top))-4}" text-anchor="middle" style="fill:var(--fg);font-weight:600">${Math.round(v)}</text>`)
         +`<text x="${x+bw/2}" y="${H-12}" text-anchor="middle">${esc(isoToDM(g.iso))}</text><text x="${x+bw/2}" y="${H-1}" text-anchor="middle" style="font-size:10px">${esc(g.rival.slice(0,8))}</text>`}).join("");
     return `<div class="mpdet"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Minutos de ${esc(o.name)} partido a partido"><line x1="${L}" x2="${W-L}" y1="${y(avg)}" y2="${y(avg)}" stroke="var(--fg)" stroke-dasharray="4 3" opacity=".5"/>${bars}</svg>
       <div class="note">${o.pj} de ${n} partidos · media ${mpTxt(avg)} (línea discontinua) · total ${fmt(o.tot,0)} min</div></div>`};
-  const head=`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Minutos por jugador · ${list.length} partido${list.length===1?"":"s"}</span>
-      <div class="chips"><button type="button" data-mpall="0" aria-pressed="${!M.all}">U22</button><button type="button" data-mpall="1" aria-pressed="${M.all}">Todos</button></div></div>
+  const head=`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Minutos por jugador · ${list.length} partido${list.length===1?"":"s"}</span></div>
     <div class="seg" role="group" aria-label="Ordenar por">${[["media","Media"],["total","Total"],["ultimo","Último"]].map(([k,l])=>`<button type="button" data-mpsort="${k}" aria-pressed="${sort===k}">${l}</button>`).join("")}</div>
-    <div class="mpcols">${sum.map(o=>{const open=M.open===o.name;return `<button type="button" class="mpc${o.u?" u22":""}${open?" open":""}" data-mpp="${esc(o.name)}" aria-expanded="${open}" aria-label="${esc(o.name)}: ${vtxt(o)}">
-      <b class="mpv">${vtxt(o)}</b>${trend(o)||`<span class="mpt"></span>`}<span class="mpcbar"><i style="height:${(val(o)/max*100).toFixed(1)}%"></i></span><span class="mpn">${esc(o.name)}</span><small>${o.pj} PJ</small></button>`}).join("")}</div>
+    <div class="mpcols">${sum.map(o=>{const open=M.open===o.name;return `<button type="button" class="mpc${open?" open":""}" data-mpp="${esc(o.name)}" aria-expanded="${open}" aria-label="${esc(o.name)}: ${vtxt(o)}">
+      <b class="mpv">${vtxt(o)}</b>${trend(o)||`<span class="mpt"></span>`}<span class="mpcbar"><i style="height:${(val(o)/max*100).toFixed(1)}%;background:${mpShade(val(o)/max)}"></i></span><span class="mpn">${esc(o.name)}</span><small>${o.pj} PJ</small></button>`}).join("")}</div>
     ${(()=>{const o=sum.find(x=>x.name===M.open);return o?`<div class="row" style="justify-content:space-between"><b style="font:600 18px/1 var(--display)">${esc(o.name)}</b><span class="note">partido a partido</span></div>`+detail(o):""})()}
     ${missing.length?`<div class="note">Sin minutos en ningún partido: ${missing.map(esc).join(", ")}</div>`:""}
     <div class="note" style="font-size:12px">Toca una barra para ver los minutos de ese jugador partido a partido. ▲▼ = último partido frente a su media.</div>
     ${refresh}</div>`;
   /* Mapa: cada fila un jugador, cada columna un partido; cuanto más oscuro, más minutos. */
-  const heat=`<div class="panel"><span class="label">Partido a partido</span><div class="mpheat"><table><thead><tr><th></th>${sum.map(o=>`<th class="${o.u?"u22":""}">${esc(o.name)}</th>`).join("")}</tr></thead>
+  const heat=`<div class="panel"><span class="label">Partido a partido</span><div class="mpheat"><table><thead><tr><th></th>${sum.map(o=>`<th>${esc(o.name)}</th>`).join("")}</tr></thead>
     <tbody>${list.map(g=>`<tr><th>${esc(isoToDM(g.iso))}<br><span>${esc(g.rival.slice(0,9))}</span></th>${sum.map(o=>{const v=o.by[g.key];return v==null?`<td class="no">–</td>`:`<td style="background:color-mix(in srgb,var(--accent) ${Math.round(15+Math.min(v,35)/35*85)}%,var(--surface))${v>=20?";color:#fff":""}">${Math.round(v)}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>
     <div class="note" style="font-size:12px">Una columna por jugador y una fila por partido (el más reciente arriba); cuanto más oscuro, más minutos.</div></div>`;
   const cards=list.map(g=>{
@@ -1026,8 +1027,8 @@ function viewPartidos(){
     const res=g.res?`<span class="pill">${esc(g.res)}</span>`:"";
     return `<div class="panel"><div class="whead"><b style="font:600 19px/1.1 var(--display)">${g.casa?"vs":"en"} ${esc(g.rival||"rival sin nombre")}</b>${res}</div>
       <span class="note">${g.jor?"Jornada "+esc(g.jor)+" · ":""}${esc(niceDate(g.iso))}</span>
-      ${rows.length?`<div class="list" style="gap:6px">${rows.map(r=>`<div class="mpr${isU(r)?" u22":""}"><span class="mpn">${esc(mpName(r))}</span><span class="mpbar"><i style="width:${Math.min(100,r.min/40*100).toFixed(1)}%"></i></span><span class="mpm">${esc(r.txt||mpTxt(r.min))}</span></div>`).join("")}</div>`
-        :`<div class="note">No jugó ninguno de los jugadores con RPE.</div>`}
+      ${rows.length?`<div class="list" style="gap:6px">${rows.map(r=>`<div class="mpr"><span class="mpn">${esc(mpName(r))}</span><span class="mpbar"><i style="width:${Math.min(100,r.min/40*100).toFixed(1)}%;background:${mpShade(r.min/35)}"></i></span><span class="mpm">${esc(r.txt||mpTxt(r.min))}</span></div>`).join("")}</div>`
+        :`<div class="note">Sin minutos apuntados.</div>`}
       ${t&&t.p1!=null?`<div class="note">En BD TIEMPO este día cuenta ${fmt(t.p1,0)} min de Practice 1 para todos.</div>`:""}</div>`}).join("");
   return up+head+heat+cards+`<div class="note">Minutos reales de cada partido, guardados en MINUTOS PARTIDO. Aquí no cambian la carga ni el ACWR.</div>`;
 }
@@ -1087,7 +1088,6 @@ async function saveMp(){
 }
 function bindPartidos(){
   const M=S.mp;
-  document.querySelectorAll("[data-mpall]").forEach(b=>b.onclick=()=>{M.all=b.dataset.mpall==="1";render()});
   document.querySelectorAll("[data-mpsort]").forEach(b=>b.onclick=()=>{M.sort=b.dataset.mpsort;render()});
   document.querySelectorAll("[data-mpp]").forEach(b=>b.onclick=()=>{M.open=M.open===b.dataset.mpp?null:b.dataset.mpp;render()});
   const fl=document.getElementById("mpfile");if(fl)fl.onchange=()=>{const f=fl.files&&fl.files[0];if(f)mpTake(f)};
@@ -1105,7 +1105,6 @@ function bindPartidos(){
     catch(e){toast(errText(e))}
     M.busy=false;render()};
 }
-
 function viewEquipo(){
   const up=!!S.assets&&!!S.db;
   const rows=S.players.map(n=>`<div class="ph-row"><div class="av">${avatar(n)}</div><div class="nm" style="font:600 20px/1.1 var(--display)">${esc(n)}</div>
