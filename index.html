@@ -202,6 +202,12 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .mpp .mpn small{display:block;font:500 11px/1.2 var(--body);color:var(--muted)}.mpp .mpbar{height:14px;border-radius:7px;background:var(--surface)}.mpp.u22 .mpbar i{background:var(--accent)}.mpp:not(.u22) .mpn{color:var(--muted)}
 .mpp.open{border-color:var(--accent)}.mpv{font:700 18px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
 .mpt{font:700 13px/1 var(--display);text-align:right;white-space:nowrap}.mpt.up{color:var(--ok)}.mpt.down{color:var(--bad)}.mpt.eq{color:var(--muted)}
+.mpcols{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 4px;align-items:stretch}
+.mpc{flex:1 0 46px;max-width:84px;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:8px 4px;color:var(--fg)}
+.mpc .mpv{font-size:15px;text-align:center}.mpc .mpt{text-align:center;min-height:13px}
+.mpcbar{width:26px;height:120px;border-radius:7px;background:var(--surface);display:flex;align-items:flex-end;overflow:hidden}.mpcbar i{display:block;width:100%;background:var(--line);border-radius:7px 7px 0 0}.mpc.u22 .mpcbar i{background:var(--accent)}
+.mpc .mpn{font:600 14px/1.1 var(--display);max-width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}.mpc:not(.u22) .mpn{color:var(--muted)}.mpc small{font-size:11px;color:var(--muted)}.mpc.open{border-color:var(--accent)}
+.mpheat thead th.u22{color:var(--fg)}.mpheat tbody th{font-size:13px}
 .mpdet{background:var(--surface-2);border-radius:10px;padding:8px 10px;margin-top:-2px;display:flex;flex-direction:column;gap:4px}
 .mpheat{overflow-x:auto}.mpheat table{border-collapse:separate;border-spacing:3px;font-variant-numeric:tabular-nums}
 .mpheat th{font:600 12px/1.15 var(--display);color:var(--muted);text-align:center;white-space:nowrap;padding:2px 4px}.mpheat th span{font-weight:500;font-size:10px}
@@ -1004,15 +1010,16 @@ function viewPartidos(){
   const head=`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Minutos por jugador · ${list.length} partido${list.length===1?"":"s"}</span>
       <div class="chips"><button type="button" data-mpall="0" aria-pressed="${!M.all}">U22</button><button type="button" data-mpall="1" aria-pressed="${M.all}">Todos</button></div></div>
     <div class="seg" role="group" aria-label="Ordenar por">${[["media","Media"],["total","Total"],["ultimo","Último"]].map(([k,l])=>`<button type="button" data-mpsort="${k}" aria-pressed="${sort===k}">${l}</button>`).join("")}</div>
-    <div class="list" style="gap:6px">${sum.map(o=>{const open=M.open===o.name;return `<button type="button" class="mpp${o.u?" u22":""}${open?" open":""}" data-mpp="${esc(o.name)}" aria-expanded="${open}">
-      <span class="mpn">${esc(o.name)}<small>${o.pj} PJ</small></span><span class="mpbar"><i style="width:${(val(o)/max*100).toFixed(1)}%"></i></span><b class="mpv">${vtxt(o)}</b>${trend(o)||`<span class="mpt"></span>`}</button>${open?detail(o):""}`}).join("")}</div>
+    <div class="mpcols">${sum.map(o=>{const open=M.open===o.name;return `<button type="button" class="mpc${o.u?" u22":""}${open?" open":""}" data-mpp="${esc(o.name)}" aria-expanded="${open}" aria-label="${esc(o.name)}: ${vtxt(o)}">
+      <b class="mpv">${vtxt(o)}</b>${trend(o)||`<span class="mpt"></span>`}<span class="mpcbar"><i style="height:${(val(o)/max*100).toFixed(1)}%"></i></span><span class="mpn">${esc(o.name)}</span><small>${o.pj} PJ</small></button>`}).join("")}</div>
+    ${(()=>{const o=sum.find(x=>x.name===M.open);return o?`<div class="row" style="justify-content:space-between"><b style="font:600 18px/1 var(--display)">${esc(o.name)}</b><span class="note">partido a partido</span></div>`+detail(o):""})()}
     ${missing.length?`<div class="note">Sin minutos en ningún partido: ${missing.map(esc).join(", ")}</div>`:""}
-    <div class="note" style="font-size:12px">Toca un jugador para ver sus minutos partido a partido. ▲▼ = último partido frente a su media.</div>
+    <div class="note" style="font-size:12px">Toca una barra para ver los minutos de ese jugador partido a partido. ▲▼ = último partido frente a su media.</div>
     ${refresh}</div>`;
   /* Mapa: cada fila un jugador, cada columna un partido; cuanto más oscuro, más minutos. */
-  const heat=`<div class="panel"><span class="label">Partido a partido</span><div class="mpheat"><table><thead><tr><th></th>${chron.map(g=>`<th>${esc(isoToDM(g.iso))}<br><span>${esc(g.rival.slice(0,6))}</span></th>`).join("")}</tr></thead>
-    <tbody>${sum.map(o=>`<tr><th class="${o.u?"u22":""}">${esc(o.name)}</th>${chron.map(g=>{const v=o.by[g.key];return v==null?`<td class="no">–</td>`:`<td style="background:color-mix(in srgb,var(--accent) ${Math.round(15+Math.min(v,35)/35*85)}%,var(--surface))${v>=20?";color:#fff":""}">${Math.round(v)}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>
-    <div class="note" style="font-size:12px">Minutos de cada jugador en cada partido; cuanto más oscuro, más minutos.</div></div>`;
+  const heat=`<div class="panel"><span class="label">Partido a partido</span><div class="mpheat"><table><thead><tr><th></th>${sum.map(o=>`<th class="${o.u?"u22":""}">${esc(o.name)}</th>`).join("")}</tr></thead>
+    <tbody>${list.map(g=>`<tr><th>${esc(isoToDM(g.iso))}<br><span>${esc(g.rival.slice(0,9))}</span></th>${sum.map(o=>{const v=o.by[g.key];return v==null?`<td class="no">–</td>`:`<td style="background:color-mix(in srgb,var(--accent) ${Math.round(15+Math.min(v,35)/35*85)}%,var(--surface))${v>=20?";color:#fff":""}">${Math.round(v)}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>
+    <div class="note" style="font-size:12px">Una columna por jugador y una fila por partido (el más reciente arriba); cuanto más oscuro, más minutos.</div></div>`;
   const cards=list.map(g=>{
     const rows=g.rows.filter(sel).sort((a,b)=>b.min-a.min);
     const t=S.tiempo.byDM[isoToDM(g.iso)];
