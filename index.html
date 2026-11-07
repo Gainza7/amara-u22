@@ -198,6 +198,15 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .mpbar{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}.mpbar i{display:block;height:100%;background:var(--line)}.mpr.u22 .mpbar i{background:var(--accent)}
 .mpr .mpm{font:600 16px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
 .mpr:not(.u22) .mpn{font-weight:500;color:var(--muted)}
+.mpp{display:grid;grid-template-columns:minmax(78px,1.1fr) minmax(60px,2fr) 54px 40px;gap:8px;align-items:center;width:100%;text-align:left;background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:8px 10px;color:var(--fg)}
+.mpp .mpn small{display:block;font:500 11px/1.2 var(--body);color:var(--muted)}.mpp .mpbar{height:14px;border-radius:7px;background:var(--surface)}.mpp.u22 .mpbar i{background:var(--accent)}.mpp:not(.u22) .mpn{color:var(--muted)}
+.mpp.open{border-color:var(--accent)}.mpv{font:700 18px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
+.mpt{font:700 13px/1 var(--display);text-align:right;white-space:nowrap}.mpt.up{color:var(--ok)}.mpt.down{color:var(--bad)}.mpt.eq{color:var(--muted)}
+.mpdet{background:var(--surface-2);border-radius:10px;padding:8px 10px;margin-top:-2px;display:flex;flex-direction:column;gap:4px}
+.mpheat{overflow-x:auto}.mpheat table{border-collapse:separate;border-spacing:3px;font-variant-numeric:tabular-nums}
+.mpheat th{font:600 12px/1.15 var(--display);color:var(--muted);text-align:center;white-space:nowrap;padding:2px 4px}.mpheat th span{font-weight:500;font-size:10px}
+.mpheat tbody th{text-align:left;font:600 14px/1.1 var(--display);color:var(--muted);position:sticky;left:0;background:var(--surface);padding-right:6px}.mpheat tbody th.u22{color:var(--fg)}
+.mpheat td{min-width:40px;height:32px;text-align:center;border-radius:6px;font:700 15px/1 var(--display);color:var(--fg)}.mpheat td.no{color:var(--muted);background:var(--surface-2);font-weight:500}
 .mppick{position:relative;overflow:hidden;cursor:pointer}.mppick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
 .whead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.whead b{font:600 19px/1.1 var(--display)}
 .wnums{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
@@ -972,18 +981,38 @@ function viewPartidos(){
   if(!M.rows.length)return up+`<div class="panel"><span class="label">Minutos de partido</span>
     <div class="empty">${M.missing?"La hoja todavía no tiene la pestaña MINUTOS PARTIDO. Créala vacía y pulsa Actualizar.":"Todavía no hay minutos apuntados. Sube la captura del primer partido."}</div>${refresh}</div>`;
   const isU=r=>!!r.app&&S.players.includes(r.app);
-  const games={};M.rows.forEach(r=>{(games[r.id||r.iso]=games[r.id||r.iso]||{iso:r.iso,jor:r.jor,rival:r.rival,casa:r.casa,res:r.res,rows:[]}).rows.push(r)});
+  const games={};M.rows.forEach(r=>{(games[r.id||r.iso]=games[r.id||r.iso]||{key:r.id||r.iso,iso:r.iso,jor:r.jor,rival:r.rival,casa:r.casa,res:r.res,rows:[]}).rows.push(r)});
   const list=Object.values(games).sort((a,b)=>b.iso.localeCompare(a.iso));
   const sel=r=>M.all||isU(r);
-  const byP={};M.rows.filter(sel).forEach(r=>{const k=mpName(r);const o=byP[k]=byP[k]||{name:k,u:isU(r),pj:0,tot:0,last:null,lastIso:""};o.pj++;o.tot+=r.min;if(r.iso>o.lastIso){o.lastIso=r.iso;o.last=r.min}});
-  const sum=Object.values(byP).sort((a,b)=>b.tot/b.pj-a.tot/a.pj);
+  const chron=list.slice().reverse();
+  const byP={};M.rows.filter(sel).forEach(r=>{const k=mpName(r);const o=byP[k]=byP[k]||{name:k,u:isU(r),pj:0,tot:0,last:null,lastIso:"",by:{}};o.pj++;o.tot+=r.min;o.by[r.id||r.iso]=r.min;if(r.iso>o.lastIso){o.lastIso=r.iso;o.last=r.min}});
+  const sort=M.sort||"media";const val=o=>sort==="total"?o.tot:sort==="ultimo"?(o.last||0):o.tot/o.pj;
+  const sum=Object.values(byP).sort((a,b)=>val(b)-val(a)||a.name.localeCompare(b.name,"es"));
+  const max=Math.max(1,...sum.map(val));
   const missing=M.all?[]:S.players.filter(p=>!byP[p]);
+  const vtxt=o=>sort==="total"?fmt(o.tot,0)+"′":mpTxt(val(o));
+  /* Tendencia: último partido frente a su media (±2 min se considera igual). */
+  const trend=o=>{if(o.pj<2)return "";const d=o.last-o.tot/o.pj;if(Math.abs(d)<2)return `<span class="mpt eq" title="Último partido como su media">=</span>`;
+    return `<span class="mpt ${d>0?"up":"down"}" title="Último partido frente a su media">${d>0?"▲":"▼"}${Math.round(Math.abs(d))}′</span>`};
+  const detail=o=>{const W=320,H=120,L=4,T=16,B=26,n=chron.length,bw=(W-2*L)/n,top=40;const y=v=>T+(H-T-B)*(1-v/top);const avg=o.tot/o.pj;
+    const bars=chron.map((g,i)=>{const v=o.by[g.key];const x=L+i*bw;
+      return (v==null?`<text x="${x+bw/2}" y="${y(0)-4}" text-anchor="middle">–</text>`
+        :`<rect x="${x+bw*.18}" y="${y(Math.min(v,top))}" width="${bw*.64}" height="${y(0)-y(Math.min(v,top))}" rx="3" fill="${o.u?"var(--accent)":"var(--muted)"}"/><text x="${x+bw/2}" y="${y(Math.min(v,top))-4}" text-anchor="middle" style="fill:var(--fg);font-weight:600">${Math.round(v)}</text>`)
+        +`<text x="${x+bw/2}" y="${H-12}" text-anchor="middle">${esc(isoToDM(g.iso))}</text><text x="${x+bw/2}" y="${H-1}" text-anchor="middle" style="font-size:10px">${esc(g.rival.slice(0,8))}</text>`}).join("");
+    return `<div class="mpdet"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Minutos de ${esc(o.name)} partido a partido"><line x1="${L}" x2="${W-L}" y1="${y(avg)}" y2="${y(avg)}" stroke="var(--fg)" stroke-dasharray="4 3" opacity=".5"/>${bars}</svg>
+      <div class="note">${o.pj} de ${n} partidos · media ${mpTxt(avg)} (línea discontinua) · total ${fmt(o.tot,0)} min</div></div>`};
   const head=`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Minutos por jugador · ${list.length} partido${list.length===1?"":"s"}</span>
       <div class="chips"><button type="button" data-mpall="0" aria-pressed="${!M.all}">U22</button><button type="button" data-mpall="1" aria-pressed="${M.all}">Todos</button></div></div>
-    <div class="mpsum" role="table"><div class="mps mph" role="row"><span>Jugador</span><span>PJ</span><span>Media</span><span>Total</span><span>Último</span></div>
-    ${sum.map(o=>`<div class="mps" role="row"><span class="mpn">${esc(o.name)}</span><b>${o.pj}</b><b>${mpTxt(o.tot/o.pj)}</b><b>${fmt(o.tot,0)}</b><b>${o.last==null?"–":mpTxt(o.last)}</b></div>`).join("")}</div>
+    <div class="seg" role="group" aria-label="Ordenar por">${[["media","Media"],["total","Total"],["ultimo","Último"]].map(([k,l])=>`<button type="button" data-mpsort="${k}" aria-pressed="${sort===k}">${l}</button>`).join("")}</div>
+    <div class="list" style="gap:6px">${sum.map(o=>{const open=M.open===o.name;return `<button type="button" class="mpp${o.u?" u22":""}${open?" open":""}" data-mpp="${esc(o.name)}" aria-expanded="${open}">
+      <span class="mpn">${esc(o.name)}<small>${o.pj} PJ</small></span><span class="mpbar"><i style="width:${(val(o)/max*100).toFixed(1)}%"></i></span><b class="mpv">${vtxt(o)}</b>${trend(o)||`<span class="mpt"></span>`}</button>${open?detail(o):""}`}).join("")}</div>
     ${missing.length?`<div class="note">Sin minutos en ningún partido: ${missing.map(esc).join(", ")}</div>`:""}
+    <div class="note" style="font-size:12px">Toca un jugador para ver sus minutos partido a partido. ▲▼ = último partido frente a su media.</div>
     ${refresh}</div>`;
+  /* Mapa: cada fila un jugador, cada columna un partido; cuanto más oscuro, más minutos. */
+  const heat=`<div class="panel"><span class="label">Partido a partido</span><div class="mpheat"><table><thead><tr><th></th>${chron.map(g=>`<th>${esc(isoToDM(g.iso))}<br><span>${esc(g.rival.slice(0,6))}</span></th>`).join("")}</tr></thead>
+    <tbody>${sum.map(o=>`<tr><th class="${o.u?"u22":""}">${esc(o.name)}</th>${chron.map(g=>{const v=o.by[g.key];return v==null?`<td class="no">–</td>`:`<td style="background:color-mix(in srgb,var(--accent) ${Math.round(15+Math.min(v,35)/35*85)}%,var(--surface))${v>=20?";color:#fff":""}">${Math.round(v)}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>
+    <div class="note" style="font-size:12px">Minutos de cada jugador en cada partido; cuanto más oscuro, más minutos.</div></div>`;
   const cards=list.map(g=>{
     const rows=g.rows.filter(sel).sort((a,b)=>b.min-a.min);
     const t=S.tiempo.byDM[isoToDM(g.iso)];
@@ -993,7 +1022,7 @@ function viewPartidos(){
       ${rows.length?`<div class="list" style="gap:6px">${rows.map(r=>`<div class="mpr${isU(r)?" u22":""}"><span class="mpn">${esc(mpName(r))}</span><span class="mpbar"><i style="width:${Math.min(100,r.min/40*100).toFixed(1)}%"></i></span><span class="mpm">${esc(r.txt||mpTxt(r.min))}</span></div>`).join("")}</div>`
         :`<div class="note">No jugó ninguno de los jugadores con RPE.</div>`}
       ${t&&t.p1!=null?`<div class="note">En BD TIEMPO este día cuenta ${fmt(t.p1,0)} min de Practice 1 para todos.</div>`:""}</div>`}).join("");
-  return up+head+cards+`<div class="note">Minutos reales de cada partido, guardados en MINUTOS PARTIDO. Aquí no cambian la carga ni el ACWR.</div>`;
+  return up+head+heat+cards+`<div class="note">Minutos reales de cada partido, guardados en MINUTOS PARTIDO. Aquí no cambian la carga ni el ACWR.</div>`;
 }
 async function mpTake(f){
   if(!S.imgOK||S.tab!=="partidos"||S.mp.draft)return;
@@ -1052,6 +1081,8 @@ async function saveMp(){
 function bindPartidos(){
   const M=S.mp;
   document.querySelectorAll("[data-mpall]").forEach(b=>b.onclick=()=>{M.all=b.dataset.mpall==="1";render()});
+  document.querySelectorAll("[data-mpsort]").forEach(b=>b.onclick=()=>{M.sort=b.dataset.mpsort;render()});
+  document.querySelectorAll("[data-mpp]").forEach(b=>b.onclick=()=>{M.open=M.open===b.dataset.mpp?null:b.dataset.mpp;render()});
   const fl=document.getElementById("mpfile");if(fl)fl.onchange=()=>{const f=fl.files&&fl.files[0];if(f)mpTake(f)};
   const rd=document.getElementById("mpRead");if(rd)rd.onclick=readMpShot;
   const mn=document.getElementById("mpManual");if(mn)mn.onclick=()=>{M.draft={fecha:isoToday(),rival:"",casa:true,res:"",jor:"",jug:S.players.map(n=>({nombre:n.toUpperCase(),dorsal:"",min:"",app:n}))};render()};
