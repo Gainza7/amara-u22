@@ -203,6 +203,14 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .confirm .big{width:96px;height:96px;border-radius:20px;display:grid;place-items:center;font:700 60px/1 var(--display);color:#fff}
 @media (max-width:420px){nav.tabs button{font-size:11px;letter-spacing:0;padding-inline:1px}.drow .wide{grid-column:1/-1}.drow .half{grid-column:span 3}.wrow{grid-template-columns:minmax(0,1fr) 80px 60px}.wrow .imc{display:none}}
 @media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:active{transform:scale(.97)}}
+.wr{position:fixed;inset:0;z-index:50;background:rgba(20,6,12,.72);display:grid;place-items:center;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px))}
+.wr-box{background:var(--surface);color:var(--fg);border-radius:18px;border-top:8px solid var(--accent);max-width:440px;width:100%;padding:24px 20px 18px;text-align:center;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.wr-ico{font-size:56px;line-height:1}
+.wr-box h2{margin:0;font:700 34px/1.05 var(--display);text-transform:uppercase;letter-spacing:.02em;color:var(--accent)}
+.wr-txt{margin:0;font-size:18px}
+.wr-box .btn{display:block;text-decoration:none;text-align:center;padding:14px 16px}
+.wr-box .btn.big{font-size:22px;min-width:0}
+.wr-row{display:flex;justify-content:space-between;gap:12px;margin-top:4px}
 </style>
 
 <div class="app">
@@ -319,6 +327,7 @@ async function loadAll(){
     await Promise.all([loadRPE(),loadTiempo(),loadHorario().catch(()=>{S.horario.loaded=true})]);
     pickPractice();render();
     await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null,(S.tab==="wellness"||S.well.loaded)?loadWellness():null]);
+    checkMatchReminder().catch(()=>{});
     const t=new Date();setSync("Hoja al día · "+t.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}));
   }catch(e){S.err=errText(e);setSync("Sin conexión con la hoja")}
   render();
@@ -376,7 +385,7 @@ function render(){
   else if(S.tab==="entrenos"){main.innerHTML=banner+viewEntrenos();entPersist()}
   else if(S.tab==="wellness")main.innerHTML=banner+viewWellness();
   else main.innerHTML=banner+viewEquipo();
-  bind();
+  bind();wrDraw();
 }
 
 function avatar(name){
@@ -959,6 +968,58 @@ function exitKiosk(){S.kiosk=false;document.getElementById("sheetHost").innerHTM
 /* Botón visible para salir del modo jugador: un toque basta (Iñigo lo pidió así el 21/10). */
 document.addEventListener("click",e=>{if(S.kiosk&&e.target.closest&&e.target.closest("#kioskOff"))exitKiosk()});
 document.getElementById("reload").onclick=()=>{if(S.mcp)loadAll();else toast("Escribe la clave de la app para conectar con la hoja.")};
+
+/* ---------- Aviso post-partido: el día después de un partido, aviso grande para mandar el cuestionario wellness.
+   Partido = fila de HORARIO con "partido" en el tipo, o una fecha de MINUTOS PARTIDO.
+   Sale el día siguiente y el otro (por si ese día no abre la app), hasta que WELLNESS tenga alguna respuesta
+   de ese partido (desde la víspera, por si la fecha del partido está apuntada con un día de diferencia).
+   "Ahora no" lo cierra hasta la próxima vez que se abre la app; "Ya lo he mandado" no lo vuelve a sacar para ese partido.
+   Nunca sale en modo jugador. */
+const WELL_FORM="https://docs.google.com/forms/d/1522i-Q24JuGHuiHI9odqp9B9PXmF6yWschcVJVa5UNc/viewform";
+const WR_DAYS=2;
+S.wr={game:null,closed:null,checked:null};
+function isoAddDays(iso,n){const [y,m,d]=iso.split("-").map(Number);const t=new Date(y,m-1,d+n);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")}
+function isoDiff(a,b){return Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5)}
+function wrSent(iso,set){try{if(set){localStorage.setItem("u22-wr-sent",iso);return}return localStorage.getItem("u22-wr-sent")===iso}catch(e){return false}}
+async function checkMatchReminder(){
+  const today=isoToday();S.wr.checked=today;
+  const games={};
+  S.horario.rows.filter(r=>/partido/i.test(r.tipo)).forEach(r=>{if(!games[r.iso])games[r.iso]={iso:r.iso,rival:(r.tipo.match(/vs\.?\s*(.+)/i)||[])[1]||""}});
+  let mp=[];try{mp=await sget("'MINUTOS PARTIDO'!A2:D400")}catch(e){}
+  mp.forEach(r=>{const iso=dmyToIso(r[0]);if(!iso)return;const rival=String(r[2]||"").trim();if(!games[iso]||(rival&&!games[iso].rival))games[iso]={iso,rival}});
+  const g=Object.values(games).filter(x=>{const d=isoDiff(x.iso,today);return d>=1&&d<=WR_DAYS}).sort((a,b)=>a.iso<b.iso?1:-1)[0];
+  if(!g||wrSent(g.iso)){S.wr.game=null;wrDraw();return}
+  let resp;
+  if(S.well.loaded)resp=S.well.rows.map(r=>r.iso);
+  else{const v=await sget("WELLNESS!A2:A3000");resp=v.map(r=>dmyToIso(String(r[0]||"").trim().slice(0,10)))}
+  const from=isoAddDays(g.iso,-1);
+  const answered=resp.some(iso=>iso&&iso>=from&&iso<=today);
+  S.wr.game=answered?null:g;wrDraw();
+}
+function wrDraw(){
+  let host=document.getElementById("wrHost");
+  if(!host){host=document.createElement("div");host.id="wrHost";document.body.appendChild(host)}
+  const g=S.wr.game;
+  if(!g||S.kiosk||S.wr.closed===g.iso){host.innerHTML="";return}
+  if(host.dataset.iso===g.iso&&host.firstChild)return;
+  host.dataset.iso=g.iso;
+  const d=isoDiff(g.iso,isoToday());
+  const when=(d===1?"Ayer":"Anteayer")+" hubo partido"+(g.rival?" contra "+g.rival:"")+" ("+isoToDMY(g.iso).slice(0,5)+")";
+  const wa="https://wa.me/?text="+encodeURIComponent("Cuestionario post-partido, rellenadlo hoy por favor 👇\n"+WELL_FORM);
+  host.innerHTML=`<div class="wr" role="dialog" aria-modal="true" aria-labelledby="wrT">
+    <div class="wr-box">
+      <div class="wr-ico" aria-hidden="true">📋</div>
+      <h2 id="wrT">Manda el cuestionario</h2>
+      <p class="wr-txt">${esc(when)}. Todavía no hay ninguna respuesta en WELLNESS.</p>
+      <a class="btn big wr-main" href="${wa}" target="_blank" rel="noopener">Mandar por WhatsApp</a>
+      <a class="btn ghost" href="${WELL_FORM}" target="_blank" rel="noopener">Abrir el formulario</a>
+      <div class="wr-row"><button type="button" class="linkbtn" id="wrSent">Ya lo he mandado</button><button type="button" class="linkbtn" id="wrLater">Ahora no</button></div>
+    </div></div>`;
+  host.querySelector("#wrSent").onclick=()=>{wrSent(g.iso,true);S.wr.game=null;wrDraw();toast("Vale, no te lo vuelvo a recordar para este partido")};
+  host.querySelector("#wrLater").onclick=()=>{S.wr.closed=g.iso;wrDraw()};
+}
+/* La app puede quedarse abierta de un día para otro: al volver a ella, si ha cambiado el día, se mira otra vez. */
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&S.mcp&&S.wr.checked&&S.wr.checked!==isoToday())checkMatchReminder().catch(()=>{})});
 
 entRestore();
 render();
