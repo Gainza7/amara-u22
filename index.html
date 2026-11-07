@@ -208,6 +208,15 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .mpcbar{width:26px;height:120px;border-radius:7px;background:var(--surface);display:flex;align-items:flex-end;overflow:hidden}.mpcbar i{display:block;width:100%;background:var(--line);border-radius:7px 7px 0 0}.mpc.u22 .mpcbar i{background:var(--accent)}
 .mpc .mpn{font:600 14px/1.1 var(--display);max-width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}.mpc small{font-size:11px;color:var(--muted)}.mpc.open{border-color:var(--accent)}
 .mpheat thead th{color:var(--fg)}.mpheat tbody th{font-size:13px}
+.mpgh{display:flex;justify-content:space-between;align-items:baseline;color:#fff;padding:6px 4px 0}.mpgh span{font:600 13px/1 var(--display);letter-spacing:.12em;text-transform:uppercase}.mpgh small{font-size:12px;opacity:.75}
+.mpcar{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:4px 16px 10px;scrollbar-width:none}.mpcar::-webkit-scrollbar{display:none}
+.mpg{flex:0 0 86%;max-width:420px;scroll-snap-align:center;color:#fff;background:linear-gradient(160deg,rgba(255,255,255,.2),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.28);border-radius:24px;padding:16px 16px 14px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(40,0,15,.25);display:flex;flex-direction:column;gap:10px}
+.mpgtop{display:flex;justify-content:space-between;gap:8px;font-size:13px;opacity:.85}.mpgtop em{font-style:normal;font:600 11px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(255,255,255,.5);border-radius:99px;padding:4px 8px}
+.mpgrv{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}.mpgrv b{font:700 26px/1 var(--display)}.mpgrv strong{font:700 32px/1 var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mpbub{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:8px 10px;padding:6px 0 14px}
+.mpb{border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid rgba(255,255,255,.4);line-height:1.05}
+.mpb b{font:700 14px/1.05 var(--display);max-width:90%;overflow-wrap:anywhere}.mpb span{font:600 12px/1.1 var(--display);font-variant-numeric:tabular-nums;opacity:.85}
+.mpgft{font-size:12px;opacity:.75;border-top:1px solid rgba(255,255,255,.2);padding-top:8px}
 .mpdet{background:var(--surface-2);border-radius:10px;padding:8px 10px;margin-top:-2px;display:flex;flex-direction:column;gap:4px}
 .mpheat{overflow-x:auto}.mpheat table{border-collapse:separate;border-spacing:3px;font-variant-numeric:tabular-nums}
 .mpheat th{font:600 12px/1.15 var(--display);color:var(--muted);text-align:center;white-space:nowrap;padding:2px 4px}.mpheat th span{font-weight:500;font-size:10px}
@@ -1021,15 +1030,18 @@ function viewPartidos(){
   const heat=`<div class="panel"><span class="label">Partido a partido</span><div class="mpheat"><table><thead><tr><th></th>${sum.map(o=>`<th>${esc(o.name)}</th>`).join("")}</tr></thead>
     <tbody>${list.map(g=>`<tr><th>${esc(isoToDM(g.iso))}<br><span>${esc(g.rival.slice(0,9))}</span></th>${sum.map(o=>{const v=o.by[g.key];return v==null?`<td class="no">–</td>`:`<td style="background:color-mix(in srgb,var(--accent) ${Math.round(15+Math.min(v,35)/35*85)}%,var(--surface))${v>=20?";color:#fff":""}">${Math.round(v)}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>
     <div class="note" style="font-size:12px">Una columna por jugador y una fila por partido (el más reciente arriba); cuanto más oscuro, más minutos.</div></div>`;
-  const cards=list.map(g=>{
+  /* Partidos: carrusel de tarjetas translúcidas sobre el fondo; cada jugador es una burbuja, más grande y más clara cuantos más minutos. */
+  const bub=m=>Math.round(52+Math.min(m,36)/36*44);
+  const cards=`<div class="mpgh"><span>Partido a partido</span><small>Desliza para ver más →</small></div><div class="mpcar">${list.map(g=>{
     const rows=g.rows.filter(sel).sort((a,b)=>b.min-a.min);
     const t=S.tiempo.byDM[isoToDM(g.iso)];
-    const res=g.res?`<span class="pill">${esc(g.res)}</span>`:"";
-    return `<div class="panel"><div class="whead"><b style="font:600 19px/1.1 var(--display)">${g.casa?"vs":"en"} ${esc(g.rival||"rival sin nombre")}</b>${res}</div>
-      <span class="note">${g.jor?"Jornada "+esc(g.jor)+" · ":""}${esc(niceDate(g.iso))}</span>
-      ${rows.length?`<div class="list" style="gap:6px">${rows.map(r=>`<div class="mpr"><span class="mpn">${esc(mpName(r))}</span><span class="mpbar"><i style="width:${Math.min(100,r.min/40*100).toFixed(1)}%;background:${mpShade(r.min/35)}"></i></span><span class="mpm">${esc(r.txt||mpTxt(r.min))}</span></div>`).join("")}</div>`
-        :`<div class="note">Sin minutos apuntados.</div>`}
-      ${t&&t.p1!=null?`<div class="note">En BD TIEMPO este día cuenta ${fmt(t.p1,0)} min de Practice 1 para todos.</div>`:""}</div>`}).join("");
+    const tot=rows.reduce((s,r)=>s+r.min,0);
+    return `<article class="mpg"><div class="mpgtop"><span>${g.jor?"Jornada "+esc(g.jor)+" · ":""}${esc(niceDate(g.iso))}</span><em>${g.casa?"Casa":"Fuera"}</em></div>
+      <div class="mpgrv"><b>${g.casa?"vs":"en"} ${esc(g.rival||"rival sin nombre")}</b>${g.res?`<strong>${esc(g.res)}</strong>`:""}</div>
+      ${rows.length?`<div class="mpbub">${rows.map((r,i)=>{const d=bub(r.min),f=Math.min(r.min,36)/36;
+        return `<div class="mpb" style="width:${d}px;height:${d}px;background:color-mix(in srgb,#ffffff ${Math.round(18+f*82)}%,transparent);color:${f>.45?"var(--brand)":"#fff"};margin-top:${i%2?14:0}px"><b>${esc(mpName(r))}</b><span>${esc(r.txt||mpTxt(r.min))}</span></div>`}).join("")}</div>
+        <div class="mpgft">${rows.length} jugador${rows.length===1?"":"es"} · ${fmt(tot,0)} min${t&&t.p1!=null?` · BD TIEMPO: ${fmt(t.p1,0)} min P1`:""}</div>`
+        :`<div class="mpgft">Sin minutos apuntados.</div>`}</article>`}).join("")}</div>`;
   return up+head+heat+cards+`<div class="note">Minutos reales de cada partido, guardados en MINUTOS PARTIDO. Aquí no cambian la carga ni el ACWR.</div>`;
 }
 async function mpTake(f){
