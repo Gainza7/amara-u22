@@ -54,7 +54,7 @@ header button{background:transparent;border:1px solid currentColor;border-radius
 main{flex:1;padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
-  display:grid;grid-template-columns:repeat(7,1fr);padding-bottom:env(safe-area-inset-bottom,0px);
+  display:grid;grid-template-columns:repeat(8,1fr);padding-bottom:env(safe-area-inset-bottom,0px);
   padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 nav.tabs button{background:none;border:0;padding:10px 4px 12px;font:600 15px/1.1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 nav.tabs button[aria-selected="true"]{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
@@ -188,8 +188,44 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .wsc.ok{background:#2f7d4f;color:#fff}.wsc.warn{background:#e39a1c;color:#fff}.wsc.bad{background:#c62828;color:#fff}.wsc.none{background:transparent}
 .wleg{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px;align-items:center}.wleg .wsc{width:18px;height:18px;border-radius:5px;font-size:12px}
 .wnum.ok b{color:var(--ok)}
+.wpmeter{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}.wpmeter b{font:700 22px/1 var(--display)}
+.wpl{display:flex;flex-wrap:wrap;gap:6px}.wpc{display:inline-flex;align-items:baseline;gap:6px;border-radius:99px;padding:6px 12px;font:600 15px/1.1 var(--display)}
+.wpc.no{background:var(--accent);color:var(--accent-fg)}.wpc.no small{font:500 11px/1 var(--body);opacity:.85}.wpc.ok{background:var(--surface-2);color:var(--muted);font-weight:500}
 .wcard{background:var(--surface-2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .wcard.alert{box-shadow:inset 4px 0 0 var(--bad)}
+.mpsum{display:flex;flex-direction:column;gap:4px}
+.mps{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(4,minmax(40px,1fr));gap:6px;align-items:center;padding:6px 8px;border-radius:8px;background:var(--surface-2)}
+.mps.mph{background:none;padding-block:0;font-size:12px;color:var(--muted)}.mps b{font:600 17px/1 var(--display);text-align:center}.mps.mph span{text-align:center}.mps.mph span:first-child{text-align:left}
+.mpn{font:600 16px/1.1 var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mpr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(60px,2fr) 52px;gap:8px;align-items:center}
+.mpbar{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}.mpbar i{display:block;height:100%;background:var(--line)}.mpr.u22 .mpbar i{background:var(--accent)}
+.mpr .mpm{font:600 16px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
+
+.mpp{display:grid;grid-template-columns:minmax(78px,1.1fr) minmax(60px,2fr) 54px 40px;gap:8px;align-items:center;width:100%;text-align:left;background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:8px 10px;color:var(--fg)}
+.mpp .mpn small{display:block;font:500 11px/1.2 var(--body);color:var(--muted)}.mpp .mpbar{height:14px;border-radius:7px;background:var(--surface)}.mpp.u22 .mpbar i{background:var(--accent)}
+.mpp.open{border-color:var(--accent)}.mpv{font:700 18px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
+.mpt{font:700 13px/1 var(--display);text-align:right;white-space:nowrap}.mpt.up{color:var(--ok)}.mpt.down{color:var(--bad)}.mpt.eq{color:var(--muted)}
+.mpcols{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 4px;align-items:stretch}
+.mpc{flex:1 0 46px;max-width:84px;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:8px 4px;color:var(--fg)}
+.mpc .mpv{font-size:15px;text-align:center}.mpc .mpt{text-align:center;min-height:13px}
+.mpcbar{width:26px;height:120px;border-radius:7px;background:var(--surface);display:flex;align-items:flex-end;overflow:hidden}.mpcbar i{display:block;width:100%;background:var(--line);border-radius:7px 7px 0 0}.mpc.u22 .mpcbar i{background:var(--accent)}
+.mpc .mpn{font:600 14px/1.1 var(--display);max-width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}.mpc small{font-size:11px;color:var(--muted)}.mpc.open{border-color:var(--accent)}
+.mpheat thead th{color:var(--fg)}.mpheat tbody th{font-size:13px}
+.mpgh{display:flex;justify-content:space-between;align-items:baseline;color:#fff;padding:6px 4px 0}.mpgh span{font:600 13px/1 var(--display);letter-spacing:.12em;text-transform:uppercase}.mpgh small{font-size:12px;opacity:.75}
+.mpcar{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:4px 16px 10px;scrollbar-width:none}.mpcar::-webkit-scrollbar{display:none}
+.mpg{flex:0 0 86%;max-width:420px;scroll-snap-align:center;color:#fff;background:linear-gradient(160deg,rgba(255,255,255,.2),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.28);border-radius:24px;padding:16px 16px 14px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(40,0,15,.25);display:flex;flex-direction:column;gap:10px}
+.mpgtop{display:flex;justify-content:space-between;gap:8px;font-size:13px;opacity:.85}.mpgtop em{font-style:normal;font:600 11px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(255,255,255,.5);border-radius:99px;padding:4px 8px}
+.mpgrv{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}.mpgrv b{font:700 26px/1 var(--display)}.mpgrv strong{font:700 32px/1 var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mpbub{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:8px 10px;padding:6px 0 14px}
+.mpb{border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid rgba(255,255,255,.4);line-height:1.05}
+.mpb b{font:700 14px/1.05 var(--display);max-width:90%;overflow-wrap:anywhere}.mpb span{font:600 12px/1.1 var(--display);font-variant-numeric:tabular-nums;opacity:.85}
+.mpgft{font-size:12px;opacity:.75;border-top:1px solid rgba(255,255,255,.2);padding-top:8px}
+.mpdet{background:var(--surface-2);border-radius:10px;padding:8px 10px;margin-top:-2px;display:flex;flex-direction:column;gap:4px}
+.mpheat{overflow-x:auto}.mpheat table{border-collapse:separate;border-spacing:3px;font-variant-numeric:tabular-nums}
+.mpheat th{font:600 12px/1.15 var(--display);color:var(--muted);text-align:center;white-space:nowrap;padding:2px 4px}.mpheat th span{font-weight:500;font-size:10px}
+.mpheat tbody th{text-align:left;font:600 14px/1.1 var(--display);color:var(--muted);position:sticky;left:0;background:var(--surface);padding-right:6px}.mpheat tbody th{color:var(--fg)}
+.mpheat td{min-width:40px;height:32px;text-align:center;border-radius:6px;font:700 15px/1 var(--display);color:var(--fg)}.mpheat td.no{color:var(--muted);background:var(--surface-2);font-weight:500}
+.mppick{position:relative;overflow:hidden;cursor:pointer}.mppick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
 .whead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.whead b{font:600 19px/1.1 var(--display)}
 .wnums{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .wnum{background:var(--surface);border-radius:8px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;gap:2px}
@@ -201,7 +237,7 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .erow .em{font:600 18px/1 var(--display)}
 .confirm{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;text-align:center}
 .confirm .big{width:96px;height:96px;border-radius:20px;display:grid;place-items:center;font:700 60px/1 var(--display);color:#fff}
-@media (max-width:420px){nav.tabs button{font-size:11px;letter-spacing:0;padding-inline:1px}.drow .wide{grid-column:1/-1}.drow .half{grid-column:span 3}.wrow{grid-template-columns:minmax(0,1fr) 80px 60px}.wrow .imc{display:none}}
+@media (max-width:420px){nav.tabs button{font-size:10px;letter-spacing:0;padding-inline:1px}.drow .wide{grid-column:1/-1}.drow .half{grid-column:span 3}.wrow{grid-template-columns:minmax(0,1fr) 80px 60px}.wrow .imc{display:none}}
 @media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:active{transform:scale(.97)}}
 </style>
 
@@ -221,6 +257,7 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
     <button role="tab" data-tab="pesos" aria-selected="false">Pesos</button>
     <button role="tab" data-tab="entrenos" aria-selected="false">Entrenos</button>
     <button role="tab" data-tab="wellness" aria-selected="false">Wellness</button>
+    <button role="tab" data-tab="partidos" aria-selected="false">Partidos</button>
     <button role="tab" data-tab="equipo" aria-selected="false">Equipo</button>
   </nav>
 </div>
@@ -243,7 +280,7 @@ const RPE_COL=["","#3d8fb8","#3a9aa0","#3fa27f","#5fa851","#93a83c","#c79a26","#
 const S={tab:"sesion",date:isoToday(),practice:1,mcp:null,db:null,assets:null,
   rpe:{rows:[],next:2,loaded:false},tiempo:{byDM:{},loaded:false},pesos:null,panel:null,
   loads:{},loadTab:"ALEXIS",photos:{},players:RPE_NAMES.slice(),err:null,pesoDate:isoToday(),
-  horario:{rows:[],next:2,loaded:false},week:mondayOf(isoToday()),draft:null,reading:false,readMsg:"",sample:null,imgOK:false,practiceSet:false,kiosk:false,well:{rows:[],loaded:false,week:null,all:false},ent:{rows:[],next:2,loaded:false,date:isoToday(),ses:1,mode:"plan",draft:null,removed:[],reading:false,msg:"",text:"",fname:"",saving:false}};
+  horario:{rows:[],next:2,loaded:false},week:mondayOf(isoToday()),draft:null,reading:false,readMsg:"",sample:null,imgOK:false,practiceSet:false,kiosk:false,well:{rows:[],loaded:false,week:null,all:false},mp:{rows:[],loaded:false,missing:false,all:false,busy:false},ent:{rows:[],next:2,loaded:false,date:isoToday(),ses:1,mode:"plan",draft:null,removed:[],reading:false,msg:"",text:"",fname:"",saving:false}};
 function mondayOf(iso){const d=new Date(iso+"T12:00:00");const k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return toIso(d)}
 function toIso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function addDays(iso,n){const d=new Date(iso+"T12:00:00");d.setDate(d.getDate()+n);return toIso(d)}
@@ -318,7 +355,7 @@ async function loadAll(){
   try{
     await Promise.all([loadRPE(),loadTiempo(),loadHorario().catch(()=>{S.horario.loaded=true})]);
     pickPractice();render();
-    await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null,(S.tab==="wellness"||S.well.loaded)?loadWellness():null]);
+    await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null,(S.tab==="wellness"||S.well.loaded)?loadWellness():null,(S.tab==="partidos"||S.tab==="wellness"||S.mp.loaded)?loadPartidos():null]);
     const t=new Date();setSync("Hoja al día · "+t.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}));
   }catch(e){S.err=errText(e);setSync("Sin conexión con la hoja")}
   render();
@@ -375,6 +412,7 @@ function render(){
   else if(S.tab==="pesos")main.innerHTML=banner+viewPesos();
   else if(S.tab==="entrenos"){main.innerHTML=banner+viewEntrenos();entPersist()}
   else if(S.tab==="wellness")main.innerHTML=banner+viewWellness();
+  else if(S.tab==="partidos")main.innerHTML=banner+viewPartidos();
   else main.innerHTML=banner+viewEquipo();
   bind();
 }
@@ -854,6 +892,30 @@ function wellLevel(k,v){if(v==null)return "";const q=WELL_Q.find(x=>x[0]===k);if
   if(q[2]==="alto")return v>=8?"bad":v>=6?"warn":"ok";return v<=2?"bad":v<=3?"warn":"ok"}
 /* A vigilar: un comentario o cualquier pregunta en rojo. */
 function wellAlert(r){return !!r.com||WELL_Q.some(q=>wellLevel(q[0],r[q[0]])==="bad")}
+/* Quién falta por contestar: los convocados de cada partido (MINUTOS PARTIDO) sin respuesta en WELLNESS
+   entre el día del partido y 3 días después. Se cruza por la inicial y el primer apellido (M. IBARS ANDREU ↔ Marti Ibars). */
+const wpSur=f=>mpKey(String(f).replace(/^\s*[A-Za-zÀ-ÿ]{1,3}\.\s*/,"")).split(/[^A-Z]+/).filter(Boolean)[0]||"";
+function wellPend(){
+  const M=S.mp;if(!M.loaded||!M.rows.length)return "";
+  const games={};M.rows.forEach(r=>{(games[r.iso]=games[r.iso]||{iso:r.iso,rival:r.rival,casa:r.casa,rows:[]}).rows.push(r)});
+  const list=Object.values(games).sort((a,b)=>b.iso.localeCompare(a.iso));
+  const W=S.well;W.pg=Math.max(0,Math.min(list.length-1,W.pg||0));
+  const ans=(g,r)=>{const s=wpSur(r.ficha),ini=mpKey(r.ficha).charAt(0),hasta=addDays(g.iso,3);
+    return W.rows.find(w=>w.iso>=g.iso&&w.iso<=hasta&&(()=>{const t=mpKey(w.name).split(/[^A-Z]+/).filter(Boolean);return t.includes(s)&&t[0].charAt(0)===ini})())};
+  const g=list[W.pg];
+  const people=g.rows.map(r=>{const a=ans(g,r);let seg=0;
+    if(!a)for(const h of list.slice(W.pg)){const rr=h.rows.find(x=>wpSur(x.ficha)===wpSur(r.ficha));if(!rr)continue;if(ans(h,rr))break;seg++}
+    return {name:a?a.name.split(/\s+/)[0]:mpName(r),a,seg}}).sort((x,y)=>(!!x.a-!!y.a)||y.seg-x.seg||x.name.localeCompare(y.name,"es"));
+  const ok=people.filter(p=>p.a).length,n=people.length,miss=people.filter(p=>!p.a);
+  return `<div class="panel wpend"><div class="row" style="justify-content:space-between;align-items:center">
+      <button type="button" class="btn ghost" id="wpPrev"${W.pg>=list.length-1?" disabled":""} aria-label="Partido anterior">‹</button>
+      <div style="text-align:center"><span class="label">Por contestar</span><div style="font:600 18px/1.2 var(--display)">${g.casa?"vs":"en"} ${esc(g.rival.trim()||"rival")} · ${esc(isoToDMY(g.iso).slice(0,5))}</div></div>
+      <button type="button" class="btn ghost" id="wpNext"${W.pg<=0?" disabled":""} aria-label="Partido siguiente">›</button></div>
+    <div class="wpmeter"><b>${ok}/${n}</b><span class="mpbar"><i style="width:${(ok/Math.max(1,n)*100).toFixed(1)}%;background:var(--ok)"></i></span></div>
+    ${miss.length?`<div class="wpl">${miss.map(p=>`<span class="wpc no">${esc(p.name)}${p.seg>=2?`<small>${p.seg} seguidos</small>`:""}</span>`).join("")}</div>`:`<div class="note">Han contestado todos los convocados.</div>`}
+    ${ok?`<div class="wpl">${people.filter(p=>p.a).map(p=>`<span class="wpc ok">✓ ${esc(p.name)}</span>`).join("")}</div>`:""}
+    <div class="note" style="font-size:12px">Convocados según MINUTOS PARTIDO; cuenta lo contestado desde el día del partido hasta 3 días después.</div></div>`;
+}
 function viewWellness(){
   const W=S.well;
   if(!W.loaded)return `<div class="empty">Leyendo la pestaña WELLNESS…</div>`;
@@ -887,7 +949,7 @@ function viewWellness(){
     <div class="wsem" role="table"><div class="wsr wsh" role="row"><span></span>${WELL_Q.map(q=>`<span role="columnheader">${esc(q[3])}</span>`).join("")}<span role="columnheader">Molest.</span></div>
     ${list.map(r=>`<div class="wsr" role="row"><span class="wsn">${esc(short(r.name))}</span>${WELL_Q.map(q=>`<span class="wsc ${wellLevel(q[0],r[q[0]])}">${r[q[0]]==null?"–":fmt(r[q[0]],0)}</span>`).join("")}<span class="wsc ${r.com?"bad":"none"}" title="${esc(r.com)}">${r.com?"!":""}</span></div>`).join("")}</div>
     <div class="wleg"><span class="wsc ok"></span> bien <span class="wsc warn"></span> regular <span class="wsc bad"></span> mal</div><div class="note" style="font-size:12px">Fatiga y estrés: 8 o más mal, 6-7 regular. Motivación: 1-2 mal, 3 regular. "!" = ha dejado un comentario (está abajo).</div></div>`:"";
-  return nav+kpis+sem+`<div class="panel"><span class="label">Respuestas de la semana</span>
+  return nav+wellPend()+kpis+sem+`<div class="panel"><span class="label">Respuestas de la semana</span>
     ${list.length?`<div class="list">${cards}</div>`:`<div class="empty">Nadie ha contestado esta semana${W.all?"":" del U22"}.</div>`}
     ${faltan.length?`<div class="note">Sin contestar: ${faltan.map(esc).join(", ")}</div>`:""}</div>
     <div class="note">Con borde rojo, quien deja un comentario o tiene alguna pregunta en rojo. Los datos salen de la pestaña WELLNESS (el formulario de los jugadores); aquí solo se leen.</div>`;
@@ -897,8 +959,193 @@ function bindWellness(){
   const pv=document.getElementById("wlPrev");if(pv)pv.onclick=()=>{const w=ws(),i=w.indexOf(W.week);if(i>0){W.week=w[i-1];render()}};
   const nx=document.getElementById("wlNext");if(nx)nx.onclick=()=>{const w=ws(),i=w.indexOf(W.week);if(i<w.length-1){W.week=w[i+1];render()}};
   document.querySelectorAll("[data-wall]").forEach(b=>b.onclick=()=>{W.all=b.dataset.wall==="1";render()});
+  const wp=document.getElementById("wpPrev");if(wp)wp.onclick=()=>{W.pg=(W.pg||0)+1;render()};
+  const wn=document.getElementById("wpNext");if(wn)wn.onclick=()=>{W.pg=Math.max(0,(W.pg||0)-1);render()};
 }
 
+/* ---------- Partidos: minutos jugados en cada partido de Liga U22 (pestaña MINUTOS PARTIDO).
+   A fecha, B jornada, C rival, D casa/fuera, E resultado, F dorsal, G jugador (ficha), H jugador app, I minutos, J mm:ss, K id FEB.
+   Se llenan subiendo una captura de las estadísticas del partido: la app lee los minutos, los enseña para revisar y los guarda.
+   Un partido es una fecha: si ya hay minutos de ese día, se sustituyen. */
+const MP="'MINUTOS PARTIDO'";
+const MP_HEAD=["Fecha","Jornada","Rival","Casa/Fuera","Resultado","Dorsal","Jugador (ficha)","Jugador app","Minutos","MIN","ID FEB"];
+/* Apellido en la ficha → nombre en la app (equivalencias de Iñigo). */
+const MP_APP={POU:"Alexis",TORRENS:"Pau",PALLAS:"Bru",MARTENSON:"Kaspar",SOW:"Baba",FERNANDEZ:"Roger"};
+const mpKey=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();
+function mpGuess(name){const ws=mpKey(name).split(/[^A-Z]+/).filter(Boolean);
+  for(const w of ws)if(MP_APP[w])return MP_APP[w];
+  const p=S.players.find(n=>ws.includes(mpKey(n)));return p||""}
+let mpImg=null;
+async function loadPartidos(){
+  let v;
+  try{v=await sget(MP+"!A1:K3000")}
+  catch(e){if(/MINUTOS PARTIDO|Unable to parse range|no existe/i.test(e&&e.message||"")){S.mp.rows=[];S.mp.missing=true;S.mp.loaded=true;return}throw e}
+  S.mp.missing=false;S.mp.head=!!(v[0]&&v[0][0]);S.mp.next=Math.max(2,v.length+1);
+  S.mp.rows=v.map((r,i)=>({row:i+1,iso:dmyToIso(r[0]),jor:String(r[1]||"").trim(),rival:String(r[2]||"").trim(),casa:String(r[3]||"").trim()==="Casa",
+    res:String(r[4]||"").trim(),dorsal:String(r[5]||"").trim(),ficha:String(r[6]||"").trim(),app:String(r[7]||"").trim(),min:num(r[8]),txt:String(r[9]||"").trim(),id:String(r[10]||"").trim()}))
+    .slice(1).filter(r=>r.iso&&r.ficha&&r.min!=null);
+  S.mp.loaded=true;
+}
+const mpName=r=>r.app||r.ficha.replace(/^([A-ZÀ-Ý]{1,3}\.)\s*(\S+).*$/,(m,i,a)=>i+" "+a.charAt(0)+a.slice(1).toLowerCase());
+const mpTxt=m=>{const a=Math.floor(m),b=Math.round((m-a)*60);return b===60?(a+1)+":00":a+":"+String(b).padStart(2,"0")};
+function viewMpUpload(){
+  const M=S.mp,d=M.draft;
+  if(d){
+    const opts=v=>`<option value="">—</option>`+S.players.map(n=>`<option${n===v?" selected":""}>${esc(n)}</option>`).join("");
+    const dup=S.mp.rows.some(r=>r.iso===d.fecha);
+    return `<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Revisa antes de guardar</span><span class="note">${d.jug.length} jugadores</span></div>
+      <div class="drow">
+        <label class="wide">Fecha<input type="date" data-mpd="fecha" value="${esc(d.fecha||"")}"></label>
+        <label class="wide">Rival<input type="text" data-mpd="rival" value="${esc(d.rival||"")}" placeholder="Joventut"></label>
+        <label class="half">Casa / fuera<select data-mpd="casa"><option value="Casa"${d.casa?" selected":""}>Casa</option><option value="Fuera"${d.casa?"":" selected"}>Fuera</option></select></label>
+        <label class="half">Resultado<input type="text" data-mpd="res" value="${esc(d.res||"")}" placeholder="71-68"></label>
+        <label class="half">Jornada<input type="text" inputmode="numeric" data-mpd="jor" value="${esc(d.jor||"")}"></label>
+      </div>
+      ${dup?`<div class="banner warn">Ya hay minutos del ${esc(isoToDMY(d.fecha))}: al guardar se sustituyen por estos.</div>`:""}
+      <div class="note">Minutos como 21:41 (min:seg). "Jugador app" une la ficha con su pestaña; déjalo en "—" si no es del U22.</div>
+      <div class="list">${d.jug.map((j,i)=>`<div class="drow">
+        <label style="grid-column:span 3">Jugador (ficha)<input type="text" data-mpj="${i}" data-k="nombre" value="${esc(j.nombre||"")}"></label>
+        <label style="grid-column:span 2">Jugador app<select data-mpj="${i}" data-k="app">${opts(j.app)}</select></label>
+        <label style="grid-column:span 1">Min<input type="text" inputmode="decimal" data-mpj="${i}" data-k="min" value="${esc(j.min||"")}" placeholder="21:41"></label>
+        <div class="full row" style="justify-content:flex-end"><button type="button" class="linkbtn" data-mpdel="${i}">Quitar</button></div></div>`).join("")}</div>
+      <div class="row"><button type="button" class="btn ghost" id="mpAdd">Añadir jugador</button><button type="button" class="btn" id="mpSave"${M.saving?" disabled":""}>${M.saving?"Guardando…":"Guardar en la hoja"}</button><button type="button" class="btn ghost" id="mpDrop">Descartar</button></div></div>`;
+  }
+  if(!S.sample)return `<div class="panel"><span class="label">Subir captura del partido</span><div class="note">La lectura de capturas no está disponible en esta vista.</div><div class="row"><button type="button" class="btn ghost" id="mpManual">Añadir a mano</button></div></div>`;
+  return `<div class="panel"><span class="label">Subir captura del partido</span>
+    <div class="note">Captura de las estadísticas del partido con la columna de minutos del Amara. La app lee los minutos de cada jugador y te deja revisarlos antes de guardar.</div>
+    ${S.imgOK?`<div class="row"><label class="btn ghost mppick">Elegir captura<input id="mpfile" type="file" accept="image/*"></label><span class="note" id="mpname">${esc(M.fname||"")||"o pega una captura (Ctrl+V / ⌘V) o arrástrala aquí"}</span></div>`:`<div class="note">En esta vista no se pueden leer imágenes.</div>`}
+    <div class="row"><button type="button" class="btn" id="mpRead"${M.reading||!S.imgOK?" disabled":""}>${M.reading?"Leyendo…":"Leer captura"}</button><button type="button" class="btn ghost" id="mpManual">Añadir a mano</button></div>
+    ${M.msg?`<div class="note">${esc(M.msg)}</div>`:""}</div>`;
+}
+function viewPartidos(){
+  const M=S.mp,canRefresh=!!window.U22_CONFIG&&M.rows.some(r=>r.id);
+  const refresh=canRefresh?`<button type="button" class="btn ghost" id="mpRefresh"${M.busy?" disabled":""}>${M.busy?"Buscando en Gigantes…":"Buscar partidos ahora"}</button>`:"";
+  if(!M.loaded)return `<div class="empty">Leyendo la pestaña MINUTOS PARTIDO…</div>`;
+  const up=viewMpUpload();
+  if(!M.rows.length)return up+`<div class="panel"><span class="label">Minutos de partido</span>
+    <div class="empty">${M.missing?"La hoja todavía no tiene la pestaña MINUTOS PARTIDO. Créala vacía y pulsa Actualizar.":"Todavía no hay minutos apuntados. Sube la captura del primer partido."}</div>${refresh}</div>`;
+  const isU=r=>!!r.app&&S.players.includes(r.app);
+  const games={};M.rows.forEach(r=>{(games[r.id||r.iso]=games[r.id||r.iso]||{key:r.id||r.iso,iso:r.iso,jor:r.jor,rival:r.rival,casa:r.casa,res:r.res,rows:[]}).rows.push(r)});
+  const list=Object.values(games).sort((a,b)=>b.iso.localeCompare(a.iso));
+  const sel=()=>true;
+  const chron=list.slice().reverse();
+  const byP={};M.rows.filter(sel).forEach(r=>{const k=mpName(r);const o=byP[k]=byP[k]||{name:k,u:isU(r),pj:0,tot:0,last:null,lastIso:"",by:{}};o.pj++;o.tot+=r.min;o.by[r.id||r.iso]=r.min;if(r.iso>o.lastIso){o.lastIso=r.iso;o.last=r.min}});
+  const sort=M.sort||"media";const val=o=>sort==="total"?o.tot:sort==="ultimo"?(o.last||0):o.tot/o.pj;
+  const sum=Object.values(byP).sort((a,b)=>val(b)-val(a)||a.name.localeCompare(b.name,"es"));
+  const max=Math.max(1,...sum.map(val));
+  const missing=S.players.filter(p=>!byP[p]);
+  const vtxt=o=>sort==="total"?fmt(o.tot,0)+"′":mpTxt(val(o));
+  /* Tendencia: último partido frente a su media (±2 min se considera igual). */
+  const trend=o=>{if(o.pj<2)return "";const d=o.last-o.tot/o.pj;if(Math.abs(d)<2)return `<span class="mpt eq" title="Último partido como su media">=</span>`;
+    return `<span class="mpt ${d>0?"up":"down"}" title="Último partido frente a su media">${d>0?"▲":"▼"}${Math.round(Math.abs(d))}′</span>`};
+  /* Tono según minutos: pocos minutos rosa claro, muchos granate oscuro. */
+  const mpShade=f=>`color-mix(in srgb,var(--brand) ${Math.round(Math.max(0,Math.min(1,f))*100)}%,#f2a3c4)`;
+  const detail=o=>{const W=320,H=120,L=4,T=16,B=26,n=chron.length,bw=(W-2*L)/n,top=40;const y=v=>T+(H-T-B)*(1-v/top);const avg=o.tot/o.pj;
+    const bars=chron.map((g,i)=>{const v=o.by[g.key];const x=L+i*bw;
+      return (v==null?`<text x="${x+bw/2}" y="${y(0)-4}" text-anchor="middle">–</text>`
+        :`<rect x="${x+bw*.18}" y="${y(Math.min(v,top))}" width="${bw*.64}" height="${y(0)-y(Math.min(v,top))}" rx="3" fill="${mpShade(v/35)}"/><text x="${x+bw/2}" y="${y(Math.min(v,top))-4}" text-anchor="middle" style="fill:var(--fg);font-weight:600">${Math.round(v)}</text>`)
+        +`<text x="${x+bw/2}" y="${H-12}" text-anchor="middle">${esc(isoToDM(g.iso))}</text><text x="${x+bw/2}" y="${H-1}" text-anchor="middle" style="font-size:10px">${esc(g.rival.slice(0,8))}</text>`}).join("");
+    return `<div class="mpdet"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Minutos de ${esc(o.name)} partido a partido"><line x1="${L}" x2="${W-L}" y1="${y(avg)}" y2="${y(avg)}" stroke="var(--fg)" stroke-dasharray="4 3" opacity=".5"/>${bars}</svg>
+      <div class="note">${o.pj} de ${n} partidos · media ${mpTxt(avg)} (línea discontinua) · total ${fmt(o.tot,0)} min</div></div>`};
+  const head=`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Minutos por jugador · ${list.length} partido${list.length===1?"":"s"}</span></div>
+    <div class="seg" role="group" aria-label="Ordenar por">${[["media","Media"],["total","Total"],["ultimo","Último"]].map(([k,l])=>`<button type="button" data-mpsort="${k}" aria-pressed="${sort===k}">${l}</button>`).join("")}</div>
+    <div class="mpcols">${sum.map(o=>{const open=M.open===o.name;return `<button type="button" class="mpc${open?" open":""}" data-mpp="${esc(o.name)}" aria-expanded="${open}" aria-label="${esc(o.name)}: ${vtxt(o)}">
+      <b class="mpv">${vtxt(o)}</b>${trend(o)||`<span class="mpt"></span>`}<span class="mpcbar"><i style="height:${(val(o)/max*100).toFixed(1)}%;background:${mpShade(val(o)/max)}"></i></span><span class="mpn">${esc(o.name)}</span><small>${o.pj} PJ</small></button>`}).join("")}</div>
+    ${(()=>{const o=sum.find(x=>x.name===M.open);return o?`<div class="row" style="justify-content:space-between"><b style="font:600 18px/1 var(--display)">${esc(o.name)}</b><span class="note">partido a partido</span></div>`+detail(o):""})()}
+    ${missing.length?`<div class="note">Sin minutos en ningún partido: ${missing.map(esc).join(", ")}</div>`:""}
+    <div class="note" style="font-size:12px">Toca una barra para ver los minutos de ese jugador partido a partido. ▲▼ = último partido frente a su media.</div>
+    ${refresh}</div>`;
+  /* Mapa: cada fila un jugador, cada columna un partido; cuanto más oscuro, más minutos. */
+  const heat=`<div class="panel"><span class="label">Partido a partido</span><div class="mpheat"><table><thead><tr><th></th>${sum.map(o=>`<th>${esc(o.name)}</th>`).join("")}</tr></thead>
+    <tbody>${list.map(g=>`<tr><th>${esc(isoToDM(g.iso))}<br><span>${esc(g.rival.slice(0,9))}</span></th>${sum.map(o=>{const v=o.by[g.key];return v==null?`<td class="no">–</td>`:`<td style="background:color-mix(in srgb,var(--accent) ${Math.round(15+Math.min(v,35)/35*85)}%,var(--surface))${v>=20?";color:#fff":""}">${Math.round(v)}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>
+    <div class="note" style="font-size:12px">Una columna por jugador y una fila por partido (el más reciente arriba); cuanto más oscuro, más minutos.</div></div>`;
+  /* Partidos: carrusel de tarjetas translúcidas sobre el fondo; cada jugador es una burbuja, más grande y más clara cuantos más minutos. */
+  const bub=m=>Math.round(52+Math.min(m,36)/36*44);
+  const cards=`<div class="mpgh"><span>Partido a partido</span><small>Desliza para ver más →</small></div><div class="mpcar">${list.map(g=>{
+    const rows=g.rows.filter(sel).sort((a,b)=>b.min-a.min);
+    const t=S.tiempo.byDM[isoToDM(g.iso)];
+    const tot=rows.reduce((s,r)=>s+r.min,0);
+    return `<article class="mpg"><div class="mpgtop"><span>${g.jor?"Jornada "+esc(g.jor)+" · ":""}${esc(niceDate(g.iso))}</span><em>${g.casa?"Casa":"Fuera"}</em></div>
+      <div class="mpgrv"><b>${g.casa?"vs":"en"} ${esc(g.rival||"rival sin nombre")}</b>${g.res?`<strong>${esc(g.res)}</strong>`:""}</div>
+      ${rows.length?`<div class="mpbub">${rows.map((r,i)=>{const d=bub(r.min),f=Math.min(r.min,36)/36;
+        return `<div class="mpb" style="width:${d}px;height:${d}px;background:color-mix(in srgb,#ffffff ${Math.round(18+f*82)}%,transparent);color:${f>.45?"var(--brand)":"#fff"};margin-top:${i%2?14:0}px"><b>${esc(mpName(r))}</b><span>${esc(r.txt||mpTxt(r.min))}</span></div>`}).join("")}</div>
+        <div class="mpgft">${rows.length} jugador${rows.length===1?"":"es"} · ${fmt(tot,0)} min${t&&t.p1!=null?` · BD TIEMPO: ${fmt(t.p1,0)} min P1`:""}</div>`
+        :`<div class="mpgft">Sin minutos apuntados.</div>`}</article>`}).join("")}</div>`;
+  return up+head+heat+cards+`<div class="note">Minutos reales de cada partido, guardados en MINUTOS PARTIDO. Aquí no cambian la carga ni el ACWR.</div>`;
+}
+async function mpTake(f){
+  if(!S.imgOK||S.tab!=="partidos"||S.mp.draft)return;
+  const name=f.name&&f.name!=="image.png"?f.name:"Captura pegada";
+  try{mpImg=await shrink(f);S.mp.fname=name;const el=document.getElementById("mpname");if(el)el.textContent=name;toast("Captura lista: pulsa Leer captura")}
+  catch(e){mpImg=null;toast("No se pudo abrir esa imagen")}
+}
+function mpFile(list){for(const it of Array.from(list||[])){const f=it.kind==="file"?it.getAsFile():it;if(f&&/^image\//.test(f.type))return f}return null}
+document.addEventListener("paste",e=>{if(S.tab!=="partidos")return;const f=mpFile(e.clipboardData&&e.clipboardData.items);if(f){e.preventDefault();mpTake(f)}});
+document.addEventListener("dragover",e=>{if(S.tab==="partidos"&&e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes("Files"))e.preventDefault()});
+document.addEventListener("drop",e=>{if(S.tab!=="partidos")return;const f=mpFile(e.dataTransfer&&e.dataTransfer.files);if(f){e.preventDefault();mpTake(f)}});
+async function readMpShot(){
+  const M=S.mp;if(!mpImg){M.msg="Elige o pega primero la captura del partido.";render();return}
+  const prompt=`Eres el asistente de un preparador físico del equipo de baloncesto Amara Lleida U22 (también aparece como "Lleida" o "Amara Lleida"). La imagen es una captura de las estadísticas de un partido.
+Hoy es ${isoToday()}. Saca SOLO los jugadores del Amara Lleida, no los del rival. De cada uno: "nombre" tal como sale (p. ej. "P. TORRENS RIERA"), "dorsal" si sale (o ""), y "min" con los minutos jugados tal como salen en formato "mm:ss" (si salen como número decimal, conviértelos a mm:ss). Omite los que no jugaron (0:00, DNP o sin minutos) y la fila de totales.
+Si se ven, saca también: "fecha" del partido "YYYY-MM-DD" (si no sale el año, el que deje la fecha más cerca de hoy), "rival" (nombre corto del otro equipo), "casa" true si el Amara juega en casa (es el equipo local, el primero o el de la izquierda), "resultado" como "puntos Amara-puntos rival", "jornada" (número). Lo que no se vea, null.
+Devuelve SOLO un objeto JSON: {"fecha":...,"rival":...,"casa":...,"resultado":...,"jornada":...,"jugadores":[{"nombre":"P. TORRENS RIERA","dorsal":"5","min":"21:41"}]}`;
+  M.reading=true;M.msg="Leyendo la captura, puede tardar hasta un minuto…";render();
+  try{
+    const out=await S.sample.json(prompt,{modelTier:"default",images:[mpImg]})||{};
+    const jug=(Array.isArray(out.jugadores)?out.jugadores:[]).filter(j=>j&&j.nombre).map(j=>{const m=String(j.min??"").trim();
+      return {nombre:String(j.nombre).toUpperCase().slice(0,60),dorsal:String(j.dorsal??"").slice(0,4),min:/^\d{1,2}:\d{2}$/.test(m)?m:(num(m)!=null?mpTxt(num(m)):""),app:mpGuess(j.nombre)}});
+    if(!jug.length)M.msg="No he encontrado jugadores del Amara con minutos. Prueba con una captura donde se vea la tabla del Amara.";
+    else{M.draft={fecha:/^\d{4}-\d{2}-\d{2}$/.test(out.fecha||"")?out.fecha:isoToday(),rival:String(out.rival||"").slice(0,40),casa:out.casa!==false,res:String(out.resultado||"").slice(0,12),jor:out.jornada==null?"":String(out.jornada).slice(0,3),jug};
+      M.msg="";M.fname="";mpImg=null}
+  }catch(e){const c=e&&e.code;
+    M.msg=c==="not_granted"?"Has denegado el permiso para leer la captura."
+      :c==="invalid_json"?"No he podido entender la captura. Prueba con una más nítida."
+      :c==="image_rejected"||c==="images_unavailable"?"No se ha podido usar esa imagen. Prueba con una captura en JPG o PNG."
+      :c==="rate_limited"?"Demasiadas lecturas seguidas. Espera un minuto y vuelve a probar."
+      :"No se ha podido leer la captura ("+(c||"error")+").";}
+  M.reading=false;render();
+}
+function syncMp(){const d=S.mp.draft;if(!d)return;
+  document.querySelectorAll("[data-mpd]").forEach(el=>{const k=el.dataset.mpd;d[k]=k==="casa"?el.value==="Casa":el.value});
+  document.querySelectorAll("[data-mpj]").forEach(el=>{const j=d.jug[+el.dataset.mpj];if(j)j[el.dataset.k]=el.value})}
+async function saveMp(){
+  syncMp();const M=S.mp,d=M.draft;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d.fecha||"")){toast("Falta la fecha del partido");return}
+  const jug=d.jug.filter(j=>String(j.nombre).trim());
+  for(const j of jug){const m=parseMin(j.min);if(m==null||m<0||m>60){toast("Minutos no válidos en "+j.nombre+" (pon 21:41)");return}}
+  if(!jug.length){toast("No hay jugadores para guardar");return}
+  M.saving=true;render();
+  try{
+    if(!M.head)await sset(MP+"!A1:K1",[MP_HEAD]);
+    const lines=jug.map(j=>{const m=parseMin(j.min);return [isoToDMY(d.fecha),d.jor===""?"":num(d.jor)??d.jor,d.rival,d.casa?"Casa":"Fuera",d.res?"'"+d.res:"",j.dorsal||"",String(j.nombre).trim().toUpperCase(),j.app||"",Math.round(m*100)/100,"'"+mpTxt(m),""]});
+    /* Las filas que ya tenía ese día se reutilizan; las que sobren se vacían y las que falten van al final. */
+    const old=M.rows.filter(r=>r.iso===d.fecha).map(r=>r.row).sort((a,b)=>a-b);
+    for(let k=0;k<old.length;k++)await sset(MP+"!A"+old[k]+":K"+old[k],[k<lines.length?lines[k]:Array(11).fill("")]);
+    const rest=lines.slice(old.length);
+    if(rest.length){const a=M.next,b=a+rest.length-1;await sset(MP+"!A"+a+":K"+b,rest)}
+    await loadPartidos();M.draft=null;toast(jug.length+" jugadores guardados del "+isoToDMY(d.fecha).slice(0,5));
+  }catch(e){toast(errText(e))}
+  M.saving=false;render();
+}
+function bindPartidos(){
+  const M=S.mp;
+  document.querySelectorAll("[data-mpsort]").forEach(b=>b.onclick=()=>{M.sort=b.dataset.mpsort;render()});
+  document.querySelectorAll("[data-mpp]").forEach(b=>b.onclick=()=>{M.open=M.open===b.dataset.mpp?null:b.dataset.mpp;render()});
+  const fl=document.getElementById("mpfile");if(fl)fl.onchange=()=>{const f=fl.files&&fl.files[0];if(f)mpTake(f)};
+  const rd=document.getElementById("mpRead");if(rd)rd.onclick=readMpShot;
+  const mn=document.getElementById("mpManual");if(mn)mn.onclick=()=>{M.draft={fecha:isoToday(),rival:"",casa:true,res:"",jor:"",jug:S.players.map(n=>({nombre:n.toUpperCase(),dorsal:"",min:"",app:n}))};render()};
+  const ad=document.getElementById("mpAdd");if(ad)ad.onclick=()=>{syncMp();M.draft.jug.push({nombre:"",dorsal:"",min:"",app:""});render()};
+  document.querySelectorAll("[data-mpdel]").forEach(b=>b.onclick=()=>{syncMp();M.draft.jug.splice(+b.dataset.mpdel,1);render()});
+  document.querySelectorAll('[data-mpd="fecha"]').forEach(el=>el.onchange=()=>{syncMp();render()});
+  const sv=document.getElementById("mpSave");if(sv)sv.onclick=saveMp;
+  const dr=document.getElementById("mpDrop");if(dr)dr.onclick=()=>{M.draft=null;render()};
+  const rf=document.getElementById("mpRefresh");
+  if(rf)rf.onclick=async()=>{M.busy=true;render();
+    try{const r=await S.mcp.callTool(GS,"refresh_matches",{});const p=(r&&r.payload)||{};await loadPartidos();
+      toast(p.busy?"Ya se estaba buscando. Prueba en un minuto.":(p.leidos?"Minutos nuevos de "+p.leidos+" partido"+(p.leidos===1?"":"s"):"No hay minutos nuevos todavía"))}
+    catch(e){toast(errText(e))}
+    M.busy=false;render()};
+}
 function viewEquipo(){
   const up=!!S.assets&&!!S.db;
   const rows=S.players.map(n=>`<div class="ph-row"><div class="av">${avatar(n)}</div><div class="nm" style="font:600 20px/1.1 var(--display)">${esc(n)}</div>
@@ -922,7 +1169,7 @@ async function uploadPhoto(name,file){
 }
 
 function bind(){
-  bindCharts();bindEntrenos();bindWellness();
+  bindCharts();bindEntrenos();bindWellness();bindPartidos();
   document.querySelectorAll("[data-player]").forEach(b=>b.onclick=()=>S.kiosk?openKioskScale(b.dataset.player):openScale(b.dataset.player));
   const ko=document.getElementById("kioskOn");if(ko)ko.onclick=()=>{S.kiosk=true;render();window.scrollTo(0,0)};
   document.querySelectorAll("[data-prac],[data-pick]").forEach(b=>b.onclick=()=>{S.practice=+(b.dataset.prac||b.dataset.pick);S.practiceSet=true;render()});
@@ -950,7 +1197,8 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=async()=>{S.ta
   if(S.tab==="carga"&&!S.loads[S.loadTab]&&S.mcp){try{await loadLoad(S.loadTab)}catch(e){S.err=errText(e)}render()}
   if(S.tab==="pesos"&&!S.pesos&&S.mcp){try{await loadPesos()}catch(e){S.err=errText(e)}render()}
   if(S.tab==="entrenos"&&!S.ent.loaded&&S.mcp){try{await loadEntrenos()}catch(e){S.err=errText(e)}render()}
-  if(S.tab==="wellness"&&!S.well.loaded&&S.mcp){try{await loadWellness()}catch(e){S.err=errText(e)}render()}});
+  if(S.tab==="wellness"&&(!S.well.loaded||!S.mp.loaded)&&S.mcp){try{await Promise.all([S.well.loaded?null:loadWellness(),S.mp.loaded?null:loadPartidos()])}catch(e){S.err=errText(e)}render()}
+  if(S.tab==="partidos"&&!S.mp.loaded&&S.mcp){try{await loadPartidos()}catch(e){S.err=errText(e)}render()}});
 (()=>{const h=document.getElementById("title");let t=null;const stop=()=>{clearTimeout(t);t=null};
   h.addEventListener("pointerdown",()=>{if(!S.kiosk)return;stop();t=setTimeout(()=>{S.kiosk=false;document.getElementById("sheetHost").innerHTML="";render();toast("Modo entrenador")},2000)});
   ["pointerup","pointerleave","pointercancel"].forEach(ev=>h.addEventListener(ev,stop));

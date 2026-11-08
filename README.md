@@ -11,7 +11,7 @@ Los datos siguen en el Google Sheets **U22**: la app lee y escribe ahí a travé
 | `index.html` | Vercel | La app. |
 | `shim.js` | Vercel | Conecta la app con el Apps Script y con `/api/leer`. |
 | `config.js` | Vercel | La dirección del Apps Script. |
-| `apps-script/Codigo.gs` | Hoja U22 › Extensiones › Apps Script | Lee y escribe la hoja. Protege RPE, 'RPE App' y E:G de ENTRENOS DATOS. Guarda las fotos de jugadores en la pestaña oculta FOTOS APP. |
+| `apps-script/Codigo.gs` | Hoja U22 › Extensiones › Apps Script | Lee y escribe la hoja. Protege RPE, 'RPE App' y E:G de ENTRENOS DATOS. Guarda las fotos de jugadores en la pestaña oculta FOTOS APP. Apunta cada mañana los minutos de partido de la Liga U22. |
 | `api/leer.js` | Vercel (función) | Lee fotos o texto de horarios y entrenos con Claude. Opcional: sin clave de API, la app funciona igual y solo se pueden añadir a mano. |
 
 ## Puesta en marcha
@@ -25,6 +25,14 @@ Los datos siguen en el Google Sheets **U22**: la app lee y escribe ahí a travé
 5. Copia la **URL** que acaba en `/exec` y pégala en `config.js`, en `scriptUrl`.
 
 Si cambias el script más adelante: **Implementar › Gestionar implementaciones › editar › Nueva versión**, para que la URL no cambie.
+
+### Minutos de partido (Liga U22)
+
+El script también lee cada mañana las fichas de la Liga U22 en gigantes.com y apunta los minutos de cada jugador del Amara en dos pestañas que crea solo: **PARTIDOS U22** (la lista de partidos) y **MINUTOS PARTIDO** (una fila por jugador y partido). La app los enseña en la pestaña **Partidos**.
+
+Para ponerlo en marcha, una sola vez: en el editor de Apps Script elige la función `instalarDisparador` y pulsa **Ejecutar**. Google pedirá permiso para "conectarse a un servicio externo" (es gigantes.com). Crea el disparador diario de las 9:00 y hace la primera lectura (tarda uno o dos minutos).
+
+Si un partido no aparece, escribe su número de la FEB (el de `feb.es/competiciones/partido/2538984`) en la columna A de PARTIDOS U22 y pulsa **Buscar partidos ahora** en la app.
 
 ### 2. Vercel
 

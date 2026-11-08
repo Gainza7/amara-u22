@@ -29,6 +29,7 @@
     async callTool(server, tool, args) {
       if (tool === "get_values") { const j = await script({ op: "get_values", range: args.range }); return { payload: { values: j.values || [] } }; }
       if (tool === "update_values") { await script({ op: "update_values", range: args.range, values: args.values }); return { payload: { ok: true } }; }
+      if (tool === "refresh_matches") { const j = await script({ op: "refresh_matches" }); return { payload: j }; }
       throw fail("not_in_manifest", tool);
     },
   };
