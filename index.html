@@ -188,6 +188,9 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .wsc.ok{background:#2f7d4f;color:#fff}.wsc.warn{background:#e39a1c;color:#fff}.wsc.bad{background:#c62828;color:#fff}.wsc.none{background:transparent}
 .wleg{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px;align-items:center}.wleg .wsc{width:18px;height:18px;border-radius:5px;font-size:12px}
 .wnum.ok b{color:var(--ok)}
+.wpmeter{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}.wpmeter b{font:700 22px/1 var(--display)}
+.wpl{display:flex;flex-wrap:wrap;gap:6px}.wpc{display:inline-flex;align-items:baseline;gap:6px;border-radius:99px;padding:6px 12px;font:600 15px/1.1 var(--display)}
+.wpc.no{background:var(--accent);color:var(--accent-fg)}.wpc.no small{font:500 11px/1 var(--body);opacity:.85}.wpc.ok{background:var(--surface-2);color:var(--muted);font-weight:500}
 .wcard{background:var(--surface-2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .wcard.alert{box-shadow:inset 4px 0 0 var(--bad)}
 .mpsum{display:flex;flex-direction:column;gap:4px}
@@ -352,7 +355,7 @@ async function loadAll(){
   try{
     await Promise.all([loadRPE(),loadTiempo(),loadHorario().catch(()=>{S.horario.loaded=true})]);
     pickPractice();render();
-    await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null,(S.tab==="wellness"||S.well.loaded)?loadWellness():null,(S.tab==="partidos"||S.mp.loaded)?loadPartidos():null]);
+    await Promise.all([loadPesos(),loadLoad(S.loadTab),(S.tab==="entrenos"||S.ent.loaded)?loadEntrenos():null,(S.tab==="wellness"||S.well.loaded)?loadWellness():null,(S.tab==="partidos"||S.tab==="wellness"||S.mp.loaded)?loadPartidos():null]);
     const t=new Date();setSync("Hoja al día · "+t.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}));
   }catch(e){S.err=errText(e);setSync("Sin conexión con la hoja")}
   render();
@@ -889,6 +892,30 @@ function wellLevel(k,v){if(v==null)return "";const q=WELL_Q.find(x=>x[0]===k);if
   if(q[2]==="alto")return v>=8?"bad":v>=6?"warn":"ok";return v<=2?"bad":v<=3?"warn":"ok"}
 /* A vigilar: un comentario o cualquier pregunta en rojo. */
 function wellAlert(r){return !!r.com||WELL_Q.some(q=>wellLevel(q[0],r[q[0]])==="bad")}
+/* Quién falta por contestar: los convocados de cada partido (MINUTOS PARTIDO) sin respuesta en WELLNESS
+   entre el día del partido y 3 días después. Se cruza por la inicial y el primer apellido (M. IBARS ANDREU ↔ Marti Ibars). */
+const wpSur=f=>mpKey(String(f).replace(/^\s*[A-Za-zÀ-ÿ]{1,3}\.\s*/,"")).split(/[^A-Z]+/).filter(Boolean)[0]||"";
+function wellPend(){
+  const M=S.mp;if(!M.loaded||!M.rows.length)return "";
+  const games={};M.rows.forEach(r=>{(games[r.iso]=games[r.iso]||{iso:r.iso,rival:r.rival,casa:r.casa,rows:[]}).rows.push(r)});
+  const list=Object.values(games).sort((a,b)=>b.iso.localeCompare(a.iso));
+  const W=S.well;W.pg=Math.max(0,Math.min(list.length-1,W.pg||0));
+  const ans=(g,r)=>{const s=wpSur(r.ficha),ini=mpKey(r.ficha).charAt(0),hasta=addDays(g.iso,3);
+    return W.rows.find(w=>w.iso>=g.iso&&w.iso<=hasta&&(()=>{const t=mpKey(w.name).split(/[^A-Z]+/).filter(Boolean);return t.includes(s)&&t[0].charAt(0)===ini})())};
+  const g=list[W.pg];
+  const people=g.rows.map(r=>{const a=ans(g,r);let seg=0;
+    if(!a)for(const h of list.slice(W.pg)){const rr=h.rows.find(x=>wpSur(x.ficha)===wpSur(r.ficha));if(!rr)continue;if(ans(h,rr))break;seg++}
+    return {name:a?a.name.split(/\s+/)[0]:mpName(r),a,seg}}).sort((x,y)=>(!!x.a-!!y.a)||y.seg-x.seg||x.name.localeCompare(y.name,"es"));
+  const ok=people.filter(p=>p.a).length,n=people.length,miss=people.filter(p=>!p.a);
+  return `<div class="panel wpend"><div class="row" style="justify-content:space-between;align-items:center">
+      <button type="button" class="btn ghost" id="wpPrev"${W.pg>=list.length-1?" disabled":""} aria-label="Partido anterior">‹</button>
+      <div style="text-align:center"><span class="label">Por contestar</span><div style="font:600 18px/1.2 var(--display)">${g.casa?"vs":"en"} ${esc(g.rival.trim()||"rival")} · ${esc(isoToDMY(g.iso).slice(0,5))}</div></div>
+      <button type="button" class="btn ghost" id="wpNext"${W.pg<=0?" disabled":""} aria-label="Partido siguiente">›</button></div>
+    <div class="wpmeter"><b>${ok}/${n}</b><span class="mpbar"><i style="width:${(ok/Math.max(1,n)*100).toFixed(1)}%;background:var(--ok)"></i></span></div>
+    ${miss.length?`<div class="wpl">${miss.map(p=>`<span class="wpc no">${esc(p.name)}${p.seg>=2?`<small>${p.seg} seguidos</small>`:""}</span>`).join("")}</div>`:`<div class="note">Han contestado todos los convocados.</div>`}
+    ${ok?`<div class="wpl">${people.filter(p=>p.a).map(p=>`<span class="wpc ok">✓ ${esc(p.name)}</span>`).join("")}</div>`:""}
+    <div class="note" style="font-size:12px">Convocados según MINUTOS PARTIDO; cuenta lo contestado desde el día del partido hasta 3 días después.</div></div>`;
+}
 function viewWellness(){
   const W=S.well;
   if(!W.loaded)return `<div class="empty">Leyendo la pestaña WELLNESS…</div>`;
@@ -922,7 +949,7 @@ function viewWellness(){
     <div class="wsem" role="table"><div class="wsr wsh" role="row"><span></span>${WELL_Q.map(q=>`<span role="columnheader">${esc(q[3])}</span>`).join("")}<span role="columnheader">Molest.</span></div>
     ${list.map(r=>`<div class="wsr" role="row"><span class="wsn">${esc(short(r.name))}</span>${WELL_Q.map(q=>`<span class="wsc ${wellLevel(q[0],r[q[0]])}">${r[q[0]]==null?"–":fmt(r[q[0]],0)}</span>`).join("")}<span class="wsc ${r.com?"bad":"none"}" title="${esc(r.com)}">${r.com?"!":""}</span></div>`).join("")}</div>
     <div class="wleg"><span class="wsc ok"></span> bien <span class="wsc warn"></span> regular <span class="wsc bad"></span> mal</div><div class="note" style="font-size:12px">Fatiga y estrés: 8 o más mal, 6-7 regular. Motivación: 1-2 mal, 3 regular. "!" = ha dejado un comentario (está abajo).</div></div>`:"";
-  return nav+kpis+sem+`<div class="panel"><span class="label">Respuestas de la semana</span>
+  return nav+wellPend()+kpis+sem+`<div class="panel"><span class="label">Respuestas de la semana</span>
     ${list.length?`<div class="list">${cards}</div>`:`<div class="empty">Nadie ha contestado esta semana${W.all?"":" del U22"}.</div>`}
     ${faltan.length?`<div class="note">Sin contestar: ${faltan.map(esc).join(", ")}</div>`:""}</div>
     <div class="note">Con borde rojo, quien deja un comentario o tiene alguna pregunta en rojo. Los datos salen de la pestaña WELLNESS (el formulario de los jugadores); aquí solo se leen.</div>`;
@@ -932,6 +959,8 @@ function bindWellness(){
   const pv=document.getElementById("wlPrev");if(pv)pv.onclick=()=>{const w=ws(),i=w.indexOf(W.week);if(i>0){W.week=w[i-1];render()}};
   const nx=document.getElementById("wlNext");if(nx)nx.onclick=()=>{const w=ws(),i=w.indexOf(W.week);if(i<w.length-1){W.week=w[i+1];render()}};
   document.querySelectorAll("[data-wall]").forEach(b=>b.onclick=()=>{W.all=b.dataset.wall==="1";render()});
+  const wp=document.getElementById("wpPrev");if(wp)wp.onclick=()=>{W.pg=(W.pg||0)+1;render()};
+  const wn=document.getElementById("wpNext");if(wn)wn.onclick=()=>{W.pg=Math.max(0,(W.pg||0)-1);render()};
 }
 
 /* ---------- Partidos: minutos jugados en cada partido de Liga U22 (pestaña MINUTOS PARTIDO).
@@ -1168,7 +1197,7 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=async()=>{S.ta
   if(S.tab==="carga"&&!S.loads[S.loadTab]&&S.mcp){try{await loadLoad(S.loadTab)}catch(e){S.err=errText(e)}render()}
   if(S.tab==="pesos"&&!S.pesos&&S.mcp){try{await loadPesos()}catch(e){S.err=errText(e)}render()}
   if(S.tab==="entrenos"&&!S.ent.loaded&&S.mcp){try{await loadEntrenos()}catch(e){S.err=errText(e)}render()}
-  if(S.tab==="wellness"&&!S.well.loaded&&S.mcp){try{await loadWellness()}catch(e){S.err=errText(e)}render()}
+  if(S.tab==="wellness"&&(!S.well.loaded||!S.mp.loaded)&&S.mcp){try{await Promise.all([S.well.loaded?null:loadWellness(),S.mp.loaded?null:loadPartidos()])}catch(e){S.err=errText(e)}render()}
   if(S.tab==="partidos"&&!S.mp.loaded&&S.mcp){try{await loadPartidos()}catch(e){S.err=errText(e)}render()}});
 (()=>{const h=document.getElementById("title");let t=null;const stop=()=>{clearTimeout(t);t=null};
   h.addEventListener("pointerdown",()=>{if(!S.kiosk)return;stop();t=setTimeout(()=>{S.kiosk=false;document.getElementById("sheetHost").innerHTML="";render();toast("Modo entrenador")},2000)});
