@@ -765,6 +765,8 @@ const ENT_KEY="u22-ent-borrador";
 function elapsed(x){return (x.tAcc||0)+(x.tStart?Date.now()-x.tStart:0)}
 function clockText(x){const t=Math.floor(elapsed(x)/1000);return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")}
 /* Corregir a mano (si se olvidó darle a Empezar o a Acabar): fija el tiempo y, si está en marcha, sigue contando desde ahí. */
+/* Base para −1′/+1′: el cronómetro si se ha usado; si no, los minutos apuntados (al cargar de la hoja o escritos a mano). */
+function timeBase(x){if(x.tStart||x.tAcc)return elapsed(x);const m=parseMin(x.minutos);return m!=null&&m>0?m*60000:0}
 function setTimer(x,ms){ms=Math.max(0,Math.round(ms));x.tAcc=ms;if(x.tStart)x.tStart=Date.now();else x.minutos=ms?fmtMin(Math.round(ms/1000)/60):""}
 function stopTimer(x){if(!x.tStart)return;x.tAcc=elapsed(x);x.tStart=null;x.minutos=fmtMin(Math.round(x.tAcc/1000)/60)}
 function entPersist(){try{const E=S.ent;if(E.draft)localStorage.setItem(ENT_KEY,JSON.stringify({draft:E.draft,removed:E.removed||[],date:E.date,ses:E.ses,mode:E.mode}));else localStorage.removeItem(ENT_KEY)}catch(e){}}
@@ -901,7 +903,7 @@ function bindEntrenos(){
     if(x.tStart){stopTimer(x);toast((x.ejercicio||"Ejercicio")+": "+x.minutos+" min")}
     else{E.draft.forEach((y,j)=>{if(j!==i)stopTimer(y)});x.tStart=Date.now()}
     render()});
-  document.querySelectorAll("[data-tadd]").forEach(b=>b.onclick=()=>{syncEnt();const [i,dm]=b.dataset.tadd.split("|").map(Number);const x=E.draft[i];setTimer(x,elapsed(x)+dm*60000);entPersist();render()});
+  document.querySelectorAll("[data-tadd]").forEach(b=>b.onclick=()=>{syncEnt();const [i,dm]=b.dataset.tadd.split("|").map(Number);const x=E.draft[i];setTimer(x,timeBase(x)+dm*60000);entPersist();render()});
   document.querySelectorAll("[data-tset]").forEach(inp=>inp.onchange=()=>{syncEnt();const x=E.draft[+inp.dataset.tset];const v=inp.value.trim();
     if(v===""){if(!x.tStart){x.tAcc=0;x.minutos=""}entPersist();render();return}
     const m=parseMin(v);if(m==null||m<0||m>300){toast("Escribe el tiempo como 12 o 12:30");inp.value="";return}
