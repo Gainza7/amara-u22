@@ -790,9 +790,13 @@ function viewEntrenos(){
 }
 function entActions(){const E=S.ent;return `<div class="row"><button type="button" class="btn ghost" id="eAdd">Añadir ejercicio</button><button type="button" class="btn" id="eSave"${E.saving?" disabled":""}>Guardar en la hoja</button><button type="button" class="btn ghost" id="eDrop">Descartar</button></div>`}
 function viewPlan(){
-  const E=S.ent;const list=entFor(E.date,E.ses);const tt=entTotals(list);
+  const E=S.ent;const iso=E.date;const list=entFor(E.date,E.ses);const tt=entTotals(list);
   const saved=list.length?`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Guardado en la hoja</span>${E.draft?"":`<button type="button" class="btn ghost" id="eEdit" style="padding:6px 12px;font-size:15px">Editar</button>`}</div>
     <div class="kpis"><div class="kpi"><span class="label">Total</span><b>${fmt(tt.t,0)}</b><span class="note">min</span></div><div class="kpi"><span class="label">Oposición</span><b>${fmt(tt.o,0)}</b><span class="note">min</span></div><div class="kpi"><span class="label">% oposición</span><b>${tt.p}%</b>${tt.sin?`<span class="note">${tt.sin} sin minutos</span>`:""}</div></div>
+    ${(()=>{const hc=list.reduce((a,r)=>a+cnt(r.medias),0),fc=list.reduce((a,r)=>a+cnt(r.enteras),0);
+      const ts=minOf(S.tiempo.byDM[isoToDM(iso)],E.ses);
+      return `<div class="kpis" style="grid-template-columns:repeat(4,minmax(0,1fr))"><div class="kpi"><span class="label">Tiempo sesión</span><b>${ts==null?"–":fmt(ts,0)}</b><span class="note">${ts==null?"sin apuntar":"min"}</span></div>
+      <div class="kpi"><span class="label">HC</span><b>${hc}</b><span class="note">medias (+)</span></div><div class="kpi"><span class="label">FC</span><b>${fc}</b><span class="note">enteras (l)</span></div><div class="kpi"><span class="label">Pistas</span><b>${hc+fc}</b><span class="note">total</span></div></div>`})()}
     <div class="list">${list.map(r=>`<div class="erow"><span class="pill ${isOpo(r.ej)?"bad":"ok"}">${isOpo(r.ej)?"Opos.":"Sin op."}</span><span class="en">${esc(r.ej)}${r.pistas?` <span class="note">· ${esc(r.pistas)}</span>`:""}${tallyTxt(r)?` <span class="note">· ${esc(tallyTxt(r))}</span>`:""}</span><span class="em num">${r.min==null?"–":fmtMin(r.min)+"′"}</span></div>`).join("")}</div></div>`
     :`<div class="empty">No hay ejercicios guardados para esta sesión.</div>`;
   const d=E.draft;
