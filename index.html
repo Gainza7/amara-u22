@@ -195,6 +195,15 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .tcol{display:flex;flex-direction:column;gap:8px}
 .tcol .mvb{align-self:center;width:auto;height:30px;padding:0 12px;font-size:14px}
 .tcol .mvb:disabled{visibility:hidden}
+.estart{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.estart input{font:600 20px/1 var(--display);padding:6px 8px;width:auto}
+/* Marcador flotante del entreno en vivo: pegado al lateral derecho, se puede plegar. */
+.efloat{position:fixed;right:0;top:42%;transform:translateY(-50%);z-index:40;display:flex;align-items:stretch;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
+.efloat .ftab{border:0;background:var(--brand);color:#fff;width:22px;border-radius:10px 0 0 10px;font:700 14px/1 system-ui,sans-serif;cursor:pointer;padding:0}
+.efloat .fbody{background:var(--surface);border:1.5px solid var(--brand);border-right:0;display:flex;flex-direction:column;gap:2px;padding:6px 8px;width:70px}
+.efloat .fit{display:flex;flex-direction:column;align-items:center;padding:3px 0;border-bottom:1px solid var(--line)}.efloat .fit:last-child{border-bottom:0}
+.efloat .fit span{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:center;line-height:1.1}
+.efloat .fit b{font:800 22px/1.1 var(--display);color:var(--brand);font-variant-numeric:tabular-nums}
+.efloat.off .fbody{display:none}
 .tseq{background:var(--surface-2);border-radius:12px;padding:6px 10px}
 .tseq summary{cursor:pointer;font-size:13px;color:var(--muted);padding:4px 0}
 .tseq .runs{display:flex;flex-wrap:wrap;gap:6px 10px;font:700 18px/1.2 var(--display);letter-spacing:3px;padding:6px 0;overflow-wrap:anywhere}
@@ -839,6 +848,23 @@ function viewPlan(){
     :`<div class="note">La lectura automática no está disponible en esta vista. Puedes añadir los ejercicios a mano.</div><div class="row"><button type="button" class="btn ghost" id="eManual">Añadir a mano</button></div>`}</div>`;
   return saved+draft+upload;
 }
+/* Hora de inicio del entreno, guardada en el móvil por fecha y sesión. */
+const ENT_START="u22-ent-inicio";
+function entStarts(){try{return JSON.parse(localStorage.getItem(ENT_START)||"{}")||{}}catch(e){return {}}}
+function entStartOf(){return entStarts()[S.ent.date+"|"+S.ent.ses]||""}
+function setEntStart(v){const all=entStarts();const k=S.ent.date+"|"+S.ent.ses;if(v)all[k]=v;else delete all[k];try{localStorage.setItem(ENT_START,JSON.stringify(all))}catch(e){}}
+function exMin(x){return x.tStart||x.tAcc?elapsed(x)/60000:(parseMin(x.minutos)||0)}
+function floatStats(){const d=S.ent.draft||[];const st=entStartOf();let tr=null;
+  if(st){const [h,m]=st.split(":").map(Number);const [y,mo,da]=S.ent.date.split("-").map(Number);const t0=new Date(y,mo-1,da,h,m).getTime();const v=(Date.now()-t0)/60000;if(v>=0&&v<720)tr=v}
+  return {tr,opo:d.reduce((a,x)=>a+(isOpo(x.ejercicio)?exMin(x):0),0),fc:d.reduce((a,x)=>a+cnt(x.enteras),0),tot:d.reduce((a,x)=>a+cnt(x.medias)+cnt(x.enteras),0)}}
+function floatHtml(){const f=floatStats();const off=!!S.ent.floatOff;
+  return `<div class="efloat${off?" off":""}" id="eFloat" aria-live="off"><button type="button" class="ftab" id="eFloatTab" aria-label="${off?"Mostrar":"Ocultar"} marcador">${off?"‹":"›"}</button><div class="fbody">
+    <div class="fit"><span>Entreno</span><b data-flt="tr">${f.tr==null?"–":Math.floor(f.tr)+"′"}</b></div>
+    <div class="fit"><span>Oposición</span><b data-flt="opo">${Math.floor(f.opo)}′</b></div>
+    <div class="fit"><span>Pistas enteras</span><b data-flt="fc">${f.fc}</b></div>
+    <div class="fit"><span>Pistas totales</span><b data-flt="tot">${f.tot}</b></div></div></div>`}
+setInterval(()=>{if(!document.getElementById("eFloat"))return;const f=floatStats();const set=(k,v)=>{const el=document.querySelector('[data-flt="'+k+'"]');if(el&&el.textContent!==v)el.textContent=v};
+  set("tr",f.tr==null?"–":Math.floor(f.tr)+"′");set("opo",Math.floor(f.opo)+"′");set("fc",String(f.fc));set("tot",String(f.tot))},1000);
 function viewVivo(){
   const E=S.ent;const d=E.draft;
   if(!d||!d.length){const rm=(E.removed||[]).length;
@@ -859,7 +885,10 @@ function viewVivo(){
     ${E.askDel===i?`<div class="row lquit" style="justify-content:space-between"><span class="note">¿Quitar ${esc(x.ejercicio||"este ejercicio")}? ${x.row?"Se borrará de la hoja al guardar.":""}</span><span class="row" style="gap:8px"><button type="button" class="btn ghost" data-eqno="1" style="padding:6px 12px;font-size:14px">No</button><button type="button" class="btn" data-eqv="${i}" style="padding:6px 12px;font-size:14px;background:var(--bad);border-color:var(--bad)">Sí, quitar</button></span></div>`
       :`<div class="row" style="justify-content:flex-end"><button type="button" class="linkbtn" data-eqv="${i}">No se ha hecho · Quitar</button></div>`}
   </div>`).join("");
-  return `<div class="list">${cards}</div><div class="panel">${entActions()}</div>`;
+  const st=entStartOf();
+  const start=`<div class="panel"><div class="estart"><label class="label" for="eStart">Inicio del entreno</label><input id="eStart" type="time" value="${esc(st)}"><button type="button" class="btn ghost" id="eStartNow" style="padding:6px 12px;font-size:14px">Ahora</button>${st?`<button type="button" class="linkbtn" id="eStartClr">Quitar</button>`:""}</div>
+    <div class="note">${st?"El marcador del lateral cuenta los minutos desde esta hora.":"Pon la hora a la que empieza el entreno para que el marcador del lateral cuente los minutos."}</div></div>`;
+  return start+`<div class="list">${cards}</div><div class="panel">${entActions()}</div>`+floatHtml();
 }
 async function readEntreno(){
   const E=S.ent;const text=(document.getElementById("etext")||{}).value||"";E.text=text;
@@ -937,6 +966,10 @@ function bindEntrenos(){
     const sym=k==="medias"?"+":"l";let q=String(x.seq||"");
     if(+dv>0)q+=sym;else if(cnt(x[k])>0){const j=q.lastIndexOf(sym);if(j>=0)q=q.slice(0,j)+q.slice(j+1)}
     x[k]=Math.max(0,cnt(x[k])+(+dv));x.seq=q;entPersist();if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){};render()});
+  const es=document.getElementById("eStart");if(es)es.onchange=()=>{setEntStart(es.value);render()};
+  const en=document.getElementById("eStartNow");if(en)en.onclick=()=>{const d=new Date();setEntStart(String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"));render()};
+  const ec=document.getElementById("eStartClr");if(ec)ec.onclick=()=>{setEntStart("");render()};
+  const ft=document.getElementById("eFloatTab");if(ft)ft.onclick=()=>{E.floatOff=!E.floatOff;render()};
   document.querySelectorAll("[data-seqd]").forEach(d=>d.addEventListener("toggle",()=>{(E.seqOpen=E.seqOpen||{})[d.dataset.seqd]=d.open}));
   /* Quitar en vivo un ejercicio que al final no se hace: primer toque pregunta, segundo quita. Si ya estaba en la hoja, su fila se vacía al guardar. */
   document.querySelectorAll("[data-eqv]").forEach(b=>b.onclick=()=>{syncEnt();const i=+b.dataset.eqv;
