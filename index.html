@@ -853,13 +853,24 @@ const ENT_START="u22-ent-inicio";
 function entStarts(){try{return JSON.parse(localStorage.getItem(ENT_START)||"{}")||{}}catch(e){return {}}}
 function entStartOf(){return entStarts()[S.ent.date+"|"+S.ent.ses]||""}
 function setEntStart(v){const all=entStarts();const k=S.ent.date+"|"+S.ent.ses;if(v)all[k]=v;else delete all[k];try{localStorage.setItem(ENT_START,JSON.stringify(all))}catch(e){}}
+function entEndOf(){return entStarts()[S.ent.date+"|"+S.ent.ses+"|fin"]||""}
+function setEntEnd(v){const all=entStarts();const k=S.ent.date+"|"+S.ent.ses+"|fin";if(v)all[k]=v;else delete all[k];try{localStorage.setItem(ENT_START,JSON.stringify(all))}catch(e){}}
+const hm=v=>{const m=String(v||"").match(/^(\d{1,2}):(\d{2})/);return m?(+m[1])*60+(+m[2]):null};
+/* Duración de la sesión con inicio y fin (minutos enteros), o null. */
+function entDur(){const a=hm(entStartOf()),b=hm(entEndOf());if(a==null||b==null)return null;const d=b-a;return d>0&&d<720?d:null}
+/* Lo mismo que el botón de la pestaña Sesión: escribe el tiempo en BD TIEMPO (B P1, C P2, E P3) de esa fecha. */
+async function saveTiempoEnt(min){const t=S.tiempo.byDM[isoToDM(S.ent.date)];
+  if(!t){toast("Esa fecha no está en BD TIEMPO. Añade la fila en la hoja.");render();return}
+  try{await sset("'BD TIEMPO'!"+TCOL[S.ent.ses]+t.row,[[min]]);t["p"+S.ent.ses]=min;S.loads={};toast("Tiempo de sesión: "+min+" min guardado en BD TIEMPO")}
+  catch(e){toast(errText(e))}
+  render()}
 function exMin(x){return x.tStart||x.tAcc?elapsed(x)/60000:(parseMin(x.minutos)||0)}
 function floatStats(){const d=S.ent.draft||[];const st=entStartOf();let tr=null;
-  if(st){const [h,m]=st.split(":").map(Number);const [y,mo,da]=S.ent.date.split("-").map(Number);const t0=new Date(y,mo-1,da,h,m).getTime();const v=(Date.now()-t0)/60000;if(v>=0&&v<720)tr=v}
+  if(st){const [h,m]=st.split(":").map(Number);const [y,mo,da]=S.ent.date.split("-").map(Number);const t0=new Date(y,mo-1,da,h,m).getTime();const v=(Date.now()-t0)/60000;if(v>=0&&v<720)tr=v;const du=entDur();if(du!=null)tr=du}
   return {tr,opo:d.reduce((a,x)=>a+(isOpo(x.ejercicio)?exMin(x):0),0),fc:d.reduce((a,x)=>a+cnt(x.enteras),0),tot:d.reduce((a,x)=>a+cnt(x.medias)+cnt(x.enteras),0)}}
 function floatHtml(){const f=floatStats();const off=!!S.ent.floatOff;
   return `<div class="efloat${off?" off":""}" id="eFloat" aria-live="off"><button type="button" class="ftab" id="eFloatTab" aria-label="${off?"Mostrar":"Ocultar"} marcador">${off?"‹":"›"}</button><div class="fbody">
-    <div class="fit"><span>Entreno</span><b data-flt="tr">${f.tr==null?"–":Math.floor(f.tr)+"′"}</b></div>
+    <div class="fit"><span>${entDur()!=null?"Sesión":"Entreno"}</span><b data-flt="tr">${f.tr==null?"–":Math.floor(f.tr)+"′"}</b></div>
     <div class="fit"><span>Oposición</span><b data-flt="opo">${Math.floor(f.opo)}′</b></div>
     <div class="fit"><span>Pistas enteras</span><b data-flt="fc">${f.fc}</b></div>
     <div class="fit"><span>Pistas totales</span><b data-flt="tot">${f.tot}</b></div></div></div>`}
@@ -887,7 +898,11 @@ function viewVivo(){
   </div>`).join("");
   const st=entStartOf();
   const start=`<div class="panel"><div class="estart"><label class="label" for="eStart">Inicio del entreno</label><input id="eStart" type="time" value="${esc(st)}"><button type="button" class="btn ghost" id="eStartNow" style="padding:6px 12px;font-size:14px">Ahora</button>${st?`<button type="button" class="linkbtn" id="eStartClr">Quitar</button>`:""}</div>
-    <div class="note">${st?"El marcador del lateral cuenta los minutos desde esta hora.":"Pon la hora a la que empieza el entreno para que el marcador del lateral cuente los minutos."}</div></div>`;
+    <div class="estart"><label class="label" for="eEnd">Fin del entreno</label><input id="eEnd" type="time" value="${esc(entEndOf())}"${st?"":" disabled"}><button type="button" class="btn ghost" id="eEndNow" style="padding:6px 12px;font-size:14px"${st?"":" disabled"}>Ahora</button>${entEndOf()?`<button type="button" class="linkbtn" id="eEndClr">Quitar</button>`:""}</div>
+    ${(()=>{const du=entDur();const bd=minOf(S.tiempo.byDM[isoToDM(S.ent.date)],S.ent.ses);
+      if(!st)return `<div class="note">Pon la hora a la que empieza el entreno para que el marcador del lateral cuente los minutos.</div>`;
+      if(du==null)return `<div class="note">${entEndOf()?"La hora de fin tiene que ser después del inicio.":"Al poner la hora de fin, el tiempo de sesión se guarda solo en BD TIEMPO para las cargas. Puedes seguir cambiándolo a mano en Sesión."}</div>`;
+      return `<div class="note"><b>Sesión: ${du} min</b> · en BD TIEMPO: ${bd==null?"sin apuntar":fmt(bd,0)+" min"}${bd!==du?` <button type="button" class="linkbtn" id="eDurSave">Poner ${du} min</button>`:" ✓"}</div>`})()}</div>`;
   return start+`<div class="list">${cards}</div><div class="panel">${entActions()}</div>`+floatHtml();
 }
 async function readEntreno(){
@@ -969,6 +984,12 @@ function bindEntrenos(){
   const es=document.getElementById("eStart");if(es)es.onchange=()=>{setEntStart(es.value);render()};
   const en=document.getElementById("eStartNow");if(en)en.onclick=()=>{const d=new Date();setEntStart(String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"));render()};
   const ec=document.getElementById("eStartClr");if(ec)ec.onclick=()=>{setEntStart("");render()};
+  /* Al poner la hora de fin, el tiempo de sesión va solo a BD TIEMPO; en Sesión se puede seguir corrigiendo a mano. */
+  const endSet=v=>{setEntEnd(v);const du=entDur();if(du!=null)saveTiempoEnt(du);else render()};
+  const ee=document.getElementById("eEnd");if(ee)ee.onchange=()=>endSet(ee.value);
+  const eN=document.getElementById("eEndNow");if(eN)eN.onclick=()=>{const d=new Date();endSet(String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"))};
+  const eC=document.getElementById("eEndClr");if(eC)eC.onclick=()=>{setEntEnd("");render()};
+  const eD=document.getElementById("eDurSave");if(eD)eD.onclick=()=>{const du=entDur();if(du!=null)saveTiempoEnt(du)};
   const ft=document.getElementById("eFloatTab");if(ft)ft.onclick=()=>{E.floatOff=!E.floatOff;render()};
   document.querySelectorAll("[data-seqd]").forEach(d=>d.addEventListener("toggle",()=>{(E.seqOpen=E.seqOpen||{})[d.dataset.seqd]=d.open}));
   /* Quitar en vivo un ejercicio que al final no se hace: primer toque pregunta, segundo quita. Si ya estaba en la hoja, su fila se vacía al guardar. */
