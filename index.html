@@ -98,6 +98,11 @@ input[type=date],input[type=number],input[type=text]{background:var(--surface);b
 .wrow{display:grid;grid-template-columns:minmax(0,1fr) 92px 70px 64px;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .wrow .nm{font:600 19px/1.1 var(--display);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wrow .sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wrow.tap{cursor:pointer}.wrow.tap:active{transform:scale(.99)}
+.ptab{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
+.ptab th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
+.ptab td{padding:9px 4px;border-bottom:1px solid var(--line)}.ptab .num,.ptab th:not(:first-child){text-align:right}
+.ptab .sub{font-size:12px;color:var(--muted)}
 .num{font-variant-numeric:tabular-nums}
 .pct{font:600 18px/1 var(--display);text-align:right;font-variant-numeric:tabular-nums}
 .pill{display:inline-block;border-radius:999px;padding:3px 10px;font:600 14px/1.2 var(--display);letter-spacing:.04em;text-transform:uppercase}
@@ -175,7 +180,35 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .lhead input:focus{border-color:var(--line);background:var(--surface-2)}
 .lname{font:700 26px/1.1 var(--display);text-transform:uppercase}
 .lpist{font:600 17px/1.1 var(--display);color:var(--muted);text-align:right}
+.tfix{display:flex;align-items:center;gap:8px}.tfix .note{flex:1}.tfix input{width:84px;text-align:center;font:600 18px/1 var(--display);padding:6px}.tfix .mvb{width:auto;padding:0 10px;font-size:15px}
 .lrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tally{display:flex;justify-content:center;align-items:flex-end;gap:22px;padding:4px 0}
+/* Botones-pista en relieve: parqué, líneas blancas y el número grande encima. */
+.cbtn{position:relative;display:block;padding:0;border:1.5px solid var(--accent);border-radius:8px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;overflow:hidden;
+  background:var(--surface);color:var(--accent);
+  box-shadow:0 5px 0 var(--brand),0 8px 14px rgba(0,0,0,.28);transform:translateY(0);transition:transform .06s,box-shadow .06s}
+.cbtn:active,.cbtn.hit{transform:translateY(4px);box-shadow:0 1px 0 var(--brand),0 2px 5px rgba(0,0,0,.25);background:var(--accent-soft)}
+.cbtn.half{width:84px;height:78px}.cbtn.full{width:146px;height:78px}
+.cbtn svg{position:absolute;inset:0;width:100%;height:100%}
+.cbtn .cnum{position:absolute;inset:0;display:grid;place-items:center;font:800 36px/1 var(--display);color:var(--brand);-webkit-text-stroke:5px var(--surface);paint-order:stroke fill}
+.cbtn .clab{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);white-space:nowrap;font:700 11px/1 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;background:rgba(91,10,42,.85);color:#fff;padding:4px 8px;border-radius:999px}
+.tcol{display:flex;flex-direction:column;gap:8px}
+.tcol .mvb{align-self:center;width:auto;height:30px;padding:0 12px;font-size:14px}
+.tcol .mvb:disabled{visibility:hidden}
+.estart{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.estart input{font:600 20px/1 var(--display);padding:6px 8px;width:auto}
+/* Marcador flotante del entreno en vivo: pegado al lateral derecho, se puede plegar. */
+.efloat{position:fixed;right:0;top:42%;transform:translateY(-50%);z-index:40;display:flex;align-items:stretch;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
+.efloat .ftab{border:0;background:var(--brand);color:#fff;width:22px;border-radius:10px 0 0 10px;font:700 14px/1 system-ui,sans-serif;cursor:pointer;padding:0}
+.efloat .fbody{background:var(--surface);border:1.5px solid var(--brand);border-right:0;display:flex;flex-direction:column;gap:2px;padding:6px 8px;width:70px}
+.efloat .fit{display:flex;flex-direction:column;align-items:center;padding:3px 0;border-bottom:1px solid var(--line)}.efloat .fit:last-child{border-bottom:0}
+.efloat .fit span{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:center;line-height:1.1}
+.efloat .fit b{font:800 22px/1.1 var(--display);color:var(--brand);font-variant-numeric:tabular-nums}
+.efloat.off .fbody{display:none}
+.tseq{background:var(--surface-2);border-radius:12px;padding:6px 10px}
+.tseq summary{cursor:pointer;font-size:13px;color:var(--muted);padding:4px 0}
+.tseq .runs{display:flex;flex-wrap:wrap;gap:6px 10px;font:700 18px/1.2 var(--display);letter-spacing:3px;padding:6px 0;overflow-wrap:anywhere}
+.tseq .r-m{color:var(--accent)}.tseq .r-e{color:var(--fg)}
+
 .live .clock{font:700 52px/1 var(--display)}
 .live.on .clock{color:var(--accent)}
 .btn.big{font-size:24px;padding:16px 26px;min-width:150px}
@@ -566,14 +599,48 @@ function viewPesos(){
   const panel={};(S.panel||[]).forEach(r=>{if(r[0])panel[r[0]]=r});
   const list=players.map(p=>{const pr=panel[p.name]||[];const pct=num(String(pr[6]||"").replace("%",""));
     const cls=pct==null?"":Math.abs(pct)>=5?"bad":Math.abs(pct)>=3?"warn":"";
-    return `<div class="wrow"><div style="min-width:0"><div class="nm">${esc(p.name)}</div><div class="sub">${esc(pr[3]||"–")} kg · ${esc(pr[4]||"")}</div></div>
+    return `<div class="wrow tap" data-peso="${p.row}" role="button" tabindex="0" aria-label="Ver pesajes de ${esc(p.name)}"><div style="min-width:0"><div class="nm">${esc(p.name)}</div><div class="sub">${esc(pr[3]||"–")} kg · ${esc(pr[4]||"")}</div></div>
       <div>${spark(p.vals)}</div><div class="pct ${cls?"":""}" style="color:${cls==="bad"?"var(--bad)":cls==="warn"?"var(--warn)":"var(--fg)"}">${esc(pr[6]||"")}</div><div class="sub imc" style="text-align:right">IMC<br><span class="num" style="color:var(--fg)">${esc(pr[8]||"–")}</span></div></div>`}).join("");
   const form=players.map(p=>`<div class="inrow"><label for="w-${p.row}">${esc(p.name)}</label><input id="w-${p.row}" data-row="${p.row}" type="text" inputmode="decimal" placeholder="kg" value="${p.cur==null?"":String(p.cur).replace(".",",")}"></div>`).join("");
-  return `<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Evolución desde el primer pesaje</span><span class="note">naranja ≥3 %, rojo ≥5 %</span></div><div class="list">${list}</div></div>
+  return `<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Evolución desde el primer pesaje</span><span class="note">naranja ≥3 %, rojo ≥5 %</span></div><div class="note">Toca un jugador para ver todos sus pesajes.</div><div class="list">${list}</div></div>
   <div class="panel"><span class="label">${exists?"Corregir pesaje":"Nuevo pesaje"}</span>
     <div class="field"><label class="label" for="pdate">Fecha</label><input id="pdate" type="date" value="${S.pesoDate}"></div>
     <div class="note">${exists?"Ya hay una columna "+esc(dm)+" en PESOS: al guardar se sobrescribe.":"Se creará la columna "+esc(dm)+" en PESOS. Deja vacío quien no se pese."}</div>
     <div class="list">${form}</div><button class="btn" id="savePeso" type="button">Guardar pesaje</button></div>`;
+}
+
+function pesoCol(d){return Math.abs(d)>=5?"var(--bad)":Math.abs(d)>=3?"var(--warn)":"var(--fg)"}
+function signed(n,dec){return (n>0?"+":n<0?"−":"±")+fmt(Math.abs(n),dec)}
+function pesoChart(h){
+  if(h.length<2)return "";
+  const W=320,H=150,L=8,R=8,T=22,B=22;const ks=h.map(x=>x.kg);
+  let lo=Math.min(...ks),hi=Math.max(...ks);const pad=Math.max(.6,(hi-lo)*.15);lo-=pad;hi+=pad;
+  const X=i=>L+i*(W-L-R)/(h.length-1),Y=k=>T+(hi-k)/(hi-lo)*(H-T-B);
+  const base=`<line x1="${L}" x2="${W-R}" y1="${Y(h[0].kg).toFixed(1)}" y2="${Y(h[0].kg).toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 3"/>`;
+  const path=h.map((x,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(x.kg).toFixed(1)).join(" ");
+  const pts=h.map((x,i)=>{const a=i===0?"start":i===h.length-1?"end":"middle";
+    return `<circle cx="${X(i).toFixed(1)}" cy="${Y(x.kg).toFixed(1)}" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/><text x="${X(i).toFixed(1)}" y="${(Y(x.kg)-9).toFixed(1)}" text-anchor="${a}" style="fill:var(--fg);font-weight:600">${fmt(x.kg,1)}</text><text x="${X(i).toFixed(1)}" y="${H-5}" text-anchor="${a}">${esc(x.dm)}</text>`}).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Evolución del peso">${base}<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>${pts}</svg>`;
+}
+function openPeso(row){
+  const r=(S.pesos||[])[row-1];if(!r||!r[0])return;
+  const hdr=S.pesos[0]||[];const alt=num(r[1]);
+  const h=[];const miss=[];
+  for(let c=2;c<hdr.length;c++){const dm=String(hdr[c]||"").trim();if(!dm)continue;const kg=num(r[c]);if(kg==null)miss.push(dm);else h.push({dm,kg})}
+  const host=document.getElementById("sheetHost");const close=()=>host.innerHTML="";
+  const first=h[0];
+  const rows=h.map((x,i)=>{const prev=i?h[i-1]:null;const dp=prev?x.kg-prev.kg:null;const df=x.kg-first.kg;const pf=df/first.kg*100;
+    return `<tr><td>${esc(x.dm)}</td><td class="num"><b>${fmt(x.kg,1)}</b></td><td class="num">${dp==null?"–":signed(dp,1)}</td><td class="num" style="color:${i?pesoCol(pf):"var(--muted)"}">${i?signed(df,1)+" <span class=\"sub\">("+signed(pf,1)+" %)</span>":"inicio"}</td></tr>`}).reverse().join("");
+  const last=h[h.length-1];
+  host.innerHTML=`<div class="sheet-bg" id="sbg"><div class="sheet" role="dialog" aria-label="Pesajes de ${esc(r[0])}">
+    <div class="row" style="justify-content:space-between"><h2>${esc(r[0])}</h2><button class="btn ghost" id="closeS" type="button">Cerrar</button></div>
+    ${h.length?`<div class="note">${h.length} pesaje${h.length>1?"s":""}${alt?" · "+fmt(alt,2)+" m · IMC actual "+fmt(last.kg/(alt*alt),1):""}${miss.length?" · sin pesar: "+miss.map(esc).join(", "):""}</div>
+    ${pesoChart(h)}
+    <table class="ptab"><thead><tr><th>Fecha</th><th>Kg</th><th>vs anterior</th><th>vs primero</th></tr></thead><tbody>${rows}</tbody></table>`
+    :`<div class="note">Todavía no tiene ningún pesaje.</div>`}
+  </div></div>`;
+  host.querySelector("#closeS").onclick=close;
+  host.querySelector("#sbg").onclick=e=>{if(e.target.id==="sbg")close()};
 }
 
 async function savePesos(){
@@ -686,7 +753,8 @@ async function saveDraft(){
   render();
 }
 
-/* ---------- Entrenos: ejercicios por sesión en 'ENTRENOS DATOS' (A fecha, B sesión, C ejercicio, D minutos, H pistas, I notas antiguas).
+/* ---------- Entrenos: ejercicios por sesión en 'ENTRENOS DATOS' (A fecha, B sesión, C ejercicio, D minutos, H pistas, I notas antiguas,
+   J medias pistas jugadas "+", K pistas enteras corridas "l": el recuento que Iñigo hacía en papel).
    E:G son ARRAYFORMULA en la hoja (oposición, min oposición, semana): nunca se escriben desde aquí. */
 const ENT="'ENTRENOS DATOS'";
 const isOpo=n=>/X[1-9]|RITME/i.test(String(n||""));
@@ -696,10 +764,25 @@ function fmtMin(n){if(n==null)return "";const m=Math.floor(n),s=Math.round((n-m)
 function normPistas(v){const s=String(v||"").trim();const k=s.replace(/\s+/g,"").toLowerCase();
   if(k==="1/2")return "HC";if(k==="1/2+1")return "HC+FC";if(k==="1/2+2")return "HC+2FC";if(k==="1")return "FC";return s.toUpperCase()}
 async function loadEntrenos(){
-  const [ad,hi]=await Promise.all([sget(ENT+"!A1:D3000"),sget(ENT+"!H1:I3000")]);
-  S.ent.rows=ad.map((r,i)=>({row:i+1,iso:dmyToIso(r[0]),ses:num(r[1])||1,ej:(r[2]||"").trim(),min:num(r[3]),pistas:((hi[i]||[])[0]||"").trim(),notas:(hi[i]||[])[1]||""})).slice(1).filter(r=>r.iso&&r.ej);
+  const [ad,hi]=await Promise.all([sget(ENT+"!A1:D3000"),sget(ENT+"!H1:L3000")]);
+  S.ent.rows=ad.map((r,i)=>{const h=hi[i]||[];return {row:i+1,iso:dmyToIso(r[0]),ses:num(r[1])||1,ej:(r[2]||"").trim(),min:num(r[3]),pistas:(h[0]||"").trim(),notas:h[1]||"",medias:cnt(h[2]),enteras:cnt(h[3]),seq:String(h[4]||"").replace(/[^+l]/g,"")}}).slice(1).filter(r=>r.iso&&r.ej);
   S.ent.next=Math.max(ad.length,hi.length,1)+1;S.ent.loaded=true;
 }
+/* Recuento de pistas: entero ≥ 0 (vacío = 0). */
+function cnt(v){const n=Math.round(num(v)||0);return n>0?n:0}
+const TALLY=[["medias","+","Media pista","HC"],["enteras","l","Pista entera","FC"]];
+function tallyTxt(x){const a=cnt(x.medias),b=cnt(x.enteras);return a||b?[a?a+" HC":"",b?b+" FC":""].filter(Boolean).join(" · "):""}
+/* Secuencia de toques ("+" media pista, "l" pista entera) en el orden en que se hicieron, para ver rachas y alternancias. Se guarda en la columna L. */
+function seqRuns(q){return (String(q||"").match(/\++|l+/g)||[])}
+function seqHtml(q){const r=seqRuns(q);if(!r.length)return "";
+  const best=c=>Math.max(0,...r.filter(x=>x[0]===c).map(x=>x.length));
+  return `<div class="runs">${r.map(x=>`<span class="${x[0]==="+"?"r-m":"r-e"}">${x}</span>`).join("")}</div><div class="note">${r.length-1} cambio${r.length===2?"":"s"} · racha más larga: ${best("+")} HC seguidas, ${best("l")} FC seguidas</div>`}
+/* Dibujo de la pista (medidas FIBA en decímetros): media pista con la canasta abajo; pista entera en horizontal. */
+function courtSvg(full){const L='fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"',P='style="fill:var(--accent-soft)" stroke="currentColor" stroke-width="3"';
+  if(!full)return `<svg viewBox="-2 -2 154 144" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="0" width="150" height="140" ${L}/><rect x="51" y="82" width="48" height="58" ${P}/><circle cx="75" cy="82" r="18" ${L}/><path d="M9 140V110A67.5 67.5 0 0 1 141 110V140" ${L}/><path d="M57 0A18 18 0 0 0 93 0" ${L}/><line x1="66" y1="128" x2="84" y2="128" ${L}/><circle cx="75" cy="124" r="3" ${L}/></svg>`;
+  return `<svg viewBox="-2 -2 284 154" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="0" width="280" height="150" ${L}/><line x1="140" y1="0" x2="140" y2="150" ${L}/><circle cx="140" cy="75" r="18" ${L}/>
+    <rect x="0" y="51" width="58" height="48" ${P}/><circle cx="58" cy="75" r="18" ${L}/><path d="M0 9H30A67.5 67.5 0 0 1 30 141H0" ${L}/><line x1="12" y1="66" x2="12" y2="84" ${L}/><circle cx="16" cy="75" r="3" ${L}/>
+    <rect x="222" y="51" width="58" height="48" ${P}/><circle cx="222" cy="75" r="18" ${L}/><path d="M280 9H250A67.5 67.5 0 0 0 250 141H280" ${L}/><line x1="268" y1="66" x2="268" y2="84" ${L}/><circle cx="264" cy="75" r="3" ${L}/></svg>`}
 function entFor(iso,ses){return S.ent.rows.filter(r=>r.iso===iso&&r.ses===ses)}
 function entTotals(list){const t=list.reduce((a,r)=>a+(r.min||0),0),o=list.reduce((a,r)=>a+(isOpo(r.ej)?(r.min||0):0),0);return {t,o,p:t?Math.round(o/t*100):0,sin:list.filter(r=>r.min==null).length}}
 function opoPill(name,i){const o=isOpo(name);return `<span class="pill ${o?"bad":"ok"}"${i!=null?` data-opo="${i}"`:""}>${o?"Oposición":"Sin oposición"}</span>`}
@@ -709,12 +792,16 @@ let entImg=null;
 const ENT_KEY="u22-ent-borrador";
 function elapsed(x){return (x.tAcc||0)+(x.tStart?Date.now()-x.tStart:0)}
 function clockText(x){const t=Math.floor(elapsed(x)/1000);return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")}
+/* Corregir a mano (si se olvidó darle a Empezar o a Acabar): fija el tiempo y, si está en marcha, sigue contando desde ahí. */
+/* Base para −1′/+1′: el cronómetro si se ha usado; si no, los minutos apuntados (al cargar de la hoja o escritos a mano). */
+function timeBase(x){if(x.tStart||x.tAcc)return elapsed(x);const m=parseMin(x.minutos);return m!=null&&m>0?m*60000:0}
+function setTimer(x,ms){ms=Math.max(0,Math.round(ms));x.tAcc=ms;if(x.tStart)x.tStart=Date.now();else x.minutos=ms?fmtMin(Math.round(ms/1000)/60):""}
 function stopTimer(x){if(!x.tStart)return;x.tAcc=elapsed(x);x.tStart=null;x.minutos=fmtMin(Math.round(x.tAcc/1000)/60)}
 function entPersist(){try{const E=S.ent;if(E.draft)localStorage.setItem(ENT_KEY,JSON.stringify({draft:E.draft,removed:E.removed||[],date:E.date,ses:E.ses,mode:E.mode}));else localStorage.removeItem(ENT_KEY)}catch(e){}}
 function entRestore(){try{const v=JSON.parse(localStorage.getItem(ENT_KEY)||"null");if(v&&Array.isArray(v.draft)&&v.draft.length)Object.assign(S.ent,{draft:v.draft,removed:v.removed||[],date:v.date||S.ent.date,ses:v.ses||1,mode:v.mode||"plan"})}catch(e){}}
 setInterval(()=>{const d=S.ent.draft;if(!d||!d.some(x=>x.tStart))return;document.querySelectorAll("[data-clock]").forEach(el=>{const x=d[+el.dataset.clock];if(x)el.textContent=clockText(x)})},500);
 function entBlank(){return {ejercicio:"",pistas:"",minutos:""}}
-function entFromSaved(){return entFor(S.ent.date,S.ent.ses).map(r=>({row:r.row,ejercicio:r.ej,pistas:r.pistas,minutos:fmtMin(r.min),notas:r.notas}))}
+function entFromSaved(){return entFor(S.ent.date,S.ent.ses).map(r=>({row:r.row,ejercicio:r.ej,pistas:r.pistas,minutos:fmtMin(r.min),notas:r.notas,medias:r.medias,enteras:r.enteras,seq:r.seq}))}
 /* Flechas para cambiar el orden: al guardar, el orden de la lista decide qué fila ocupa cada ejercicio. */
 function moveBtns(i,n){return `<span class="mv"><button type="button" class="mvb" data-emv="${i}|-1" aria-label="Subir"${i===0?" disabled":""}>↑</button><button type="button" class="mvb" data-emv="${i}|1" aria-label="Bajar"${i===n-1?" disabled":""}>↓</button></span>`}
 function syncEnt(){document.querySelectorAll("[data-er]").forEach(el=>{const x=S.ent.draft&&S.ent.draft[+el.dataset.er];if(x)x[el.dataset.k]=el.value})}
@@ -731,10 +818,14 @@ function viewEntrenos(){
 }
 function entActions(){const E=S.ent;return `<div class="row"><button type="button" class="btn ghost" id="eAdd">Añadir ejercicio</button><button type="button" class="btn" id="eSave"${E.saving?" disabled":""}>Guardar en la hoja</button><button type="button" class="btn ghost" id="eDrop">Descartar</button></div>`}
 function viewPlan(){
-  const E=S.ent;const list=entFor(E.date,E.ses);const tt=entTotals(list);
+  const E=S.ent;const iso=E.date;const list=entFor(E.date,E.ses);const tt=entTotals(list);
   const saved=list.length?`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Guardado en la hoja</span>${E.draft?"":`<button type="button" class="btn ghost" id="eEdit" style="padding:6px 12px;font-size:15px">Editar</button>`}</div>
     <div class="kpis"><div class="kpi"><span class="label">Total</span><b>${fmt(tt.t,0)}</b><span class="note">min</span></div><div class="kpi"><span class="label">Oposición</span><b>${fmt(tt.o,0)}</b><span class="note">min</span></div><div class="kpi"><span class="label">% oposición</span><b>${tt.p}%</b>${tt.sin?`<span class="note">${tt.sin} sin minutos</span>`:""}</div></div>
-    <div class="list">${list.map(r=>`<div class="erow"><span class="pill ${isOpo(r.ej)?"bad":"ok"}">${isOpo(r.ej)?"Opos.":"Sin op."}</span><span class="en">${esc(r.ej)}${r.pistas?` <span class="note">· ${esc(r.pistas)}</span>`:""}</span><span class="em num">${r.min==null?"–":fmtMin(r.min)+"′"}</span></div>`).join("")}</div></div>`
+    ${(()=>{const hc=list.reduce((a,r)=>a+cnt(r.medias),0),fc=list.reduce((a,r)=>a+cnt(r.enteras),0);
+      const ts=minOf(S.tiempo.byDM[isoToDM(iso)],E.ses);
+      return `<div class="kpis" style="grid-template-columns:repeat(4,minmax(0,1fr))"><div class="kpi"><span class="label">Tiempo sesión</span><b>${ts==null?"–":fmt(ts,0)}</b><span class="note">${ts==null?"sin apuntar":"min"}</span></div>
+      <div class="kpi"><span class="label">HC</span><b>${hc}</b><span class="note">medias (+)</span></div><div class="kpi"><span class="label">FC</span><b>${fc}</b><span class="note">enteras (l)</span></div><div class="kpi"><span class="label">Pistas</span><b>${hc+fc}</b><span class="note">total</span></div></div>`})()}
+    <div class="list">${list.map(r=>`<div class="erow"><span class="pill ${isOpo(r.ej)?"bad":"ok"}">${isOpo(r.ej)?"Opos.":"Sin op."}</span><span class="en">${esc(r.ej)}${r.pistas?` <span class="note">· ${esc(r.pistas)}</span>`:""}${tallyTxt(r)?` <span class="note">· ${esc(tallyTxt(r))}</span>`:""}</span><span class="em num">${r.min==null?"–":fmtMin(r.min)+"′"}</span></div>`).join("")}</div></div>`
     :`<div class="empty">No hay ejercicios guardados para esta sesión.</div>`;
   const d=E.draft;
   const draft=d?`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Revisa antes de guardar</span><span class="note">${d.length} ejercicios</span></div>
@@ -743,6 +834,8 @@ function viewPlan(){
       <label style="grid-column:span 6">Ejercicio<input type="text" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="5X5"></label>
       <label style="grid-column:span 3">Pistas<input type="text" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="HC+FC"></label>
       <label style="grid-column:span 3">Minutos<input type="text" inputmode="decimal" data-er="${i}" data-k="minutos" value="${esc(x.minutos??"")}" placeholder="12:30"></label>
+      <label style="grid-column:span 3">Medias pistas (+)<input type="text" inputmode="numeric" data-er="${i}" data-k="medias" value="${cnt(x.medias)||""}" placeholder="0"></label>
+      <label style="grid-column:span 3">Pistas enteras (l)<input type="text" inputmode="numeric" data-er="${i}" data-k="enteras" value="${cnt(x.enteras)||""}" placeholder="0"></label>
       <div class="full row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}<span class="row" style="gap:8px">${moveBtns(i,d.length)}<button type="button" class="btn ghost" data-edel="${i}" style="padding:6px 10px;font-size:14px">Quitar</button></span></div>
     </div>`).join("")}</div>${entActions()}</div>`:"";
   const canRead=!!S.sample;
@@ -755,16 +848,62 @@ function viewPlan(){
     :`<div class="note">La lectura automática no está disponible en esta vista. Puedes añadir los ejercicios a mano.</div><div class="row"><button type="button" class="btn ghost" id="eManual">Añadir a mano</button></div>`}</div>`;
   return saved+draft+upload;
 }
+/* Hora de inicio del entreno, guardada en el móvil por fecha y sesión. */
+const ENT_START="u22-ent-inicio";
+function entStarts(){try{return JSON.parse(localStorage.getItem(ENT_START)||"{}")||{}}catch(e){return {}}}
+function entStartOf(){return entStarts()[S.ent.date+"|"+S.ent.ses]||""}
+function setEntStart(v){const all=entStarts();const k=S.ent.date+"|"+S.ent.ses;if(v)all[k]=v;else delete all[k];try{localStorage.setItem(ENT_START,JSON.stringify(all))}catch(e){}}
+function entEndOf(){return entStarts()[S.ent.date+"|"+S.ent.ses+"|fin"]||""}
+function setEntEnd(v){const all=entStarts();const k=S.ent.date+"|"+S.ent.ses+"|fin";if(v)all[k]=v;else delete all[k];try{localStorage.setItem(ENT_START,JSON.stringify(all))}catch(e){}}
+const hm=v=>{const m=String(v||"").match(/^(\d{1,2}):(\d{2})/);return m?(+m[1])*60+(+m[2]):null};
+/* Duración de la sesión con inicio y fin (minutos enteros), o null. */
+function entDur(){const a=hm(entStartOf()),b=hm(entEndOf());if(a==null||b==null)return null;const d=b-a;return d>0&&d<720?d:null}
+/* Lo mismo que el botón de la pestaña Sesión: escribe el tiempo en BD TIEMPO (B P1, C P2, E P3) de esa fecha. */
+async function saveTiempoEnt(min){const t=S.tiempo.byDM[isoToDM(S.ent.date)];
+  if(!t){toast("Esa fecha no está en BD TIEMPO. Añade la fila en la hoja.");render();return}
+  try{await sset("'BD TIEMPO'!"+TCOL[S.ent.ses]+t.row,[[min]]);t["p"+S.ent.ses]=min;S.loads={};toast("Tiempo de sesión: "+min+" min guardado en BD TIEMPO")}
+  catch(e){toast(errText(e))}
+  render()}
+function exMin(x){return x.tStart||x.tAcc?elapsed(x)/60000:(parseMin(x.minutos)||0)}
+function floatStats(){const d=S.ent.draft||[];const st=entStartOf();let tr=null;
+  if(st){const [h,m]=st.split(":").map(Number);const [y,mo,da]=S.ent.date.split("-").map(Number);const t0=new Date(y,mo-1,da,h,m).getTime();const v=(Date.now()-t0)/60000;if(v>=0&&v<720)tr=v;const du=entDur();if(du!=null)tr=du}
+  return {tr,opo:d.reduce((a,x)=>a+(isOpo(x.ejercicio)?exMin(x):0),0),fc:d.reduce((a,x)=>a+cnt(x.enteras),0),tot:d.reduce((a,x)=>a+cnt(x.medias)+cnt(x.enteras),0)}}
+function floatHtml(){const f=floatStats();const off=!!S.ent.floatOff;
+  return `<div class="efloat${off?" off":""}" id="eFloat" aria-live="off"><button type="button" class="ftab" id="eFloatTab" aria-label="${off?"Mostrar":"Ocultar"} marcador">${off?"‹":"›"}</button><div class="fbody">
+    <div class="fit"><span>${entDur()!=null?"Sesión":"Entreno"}</span><b data-flt="tr">${f.tr==null?"–":Math.floor(f.tr)+"′"}</b></div>
+    <div class="fit"><span>Oposición</span><b data-flt="opo">${Math.floor(f.opo)}′</b></div>
+    <div class="fit"><span>Pistas enteras</span><b data-flt="fc">${f.fc}</b></div>
+    <div class="fit"><span>Pistas totales</span><b data-flt="tot">${f.tot}</b></div></div></div>`}
+setInterval(()=>{if(!document.getElementById("eFloat"))return;const f=floatStats();const set=(k,v)=>{const el=document.querySelector('[data-flt="'+k+'"]');if(el&&el.textContent!==v)el.textContent=v};
+  set("tr",f.tr==null?"–":Math.floor(f.tr)+"′");set("opo",Math.floor(f.opo)+"′");set("fc",String(f.fc));set("tot",String(f.tot))},1000);
 function viewVivo(){
   const E=S.ent;const d=E.draft;
-  if(!d||!d.length)return `<div class="empty">No hay ejercicios para esta sesión. Súbelos en Planificar o añade uno.</div><div class="row" style="justify-content:center"><button type="button" class="btn" id="eAddLive">Añadir ejercicio</button></div>`;
+  if(!d||!d.length){const rm=(E.removed||[]).length;
+    if(rm)return `<div class="empty">Has quitado todos los ejercicios. Dale a Guardar para borrarlos de la hoja, o a Descartar para dejarlo como estaba.</div><div class="panel">${entActions()}</div>`;
+    return `<div class="empty">No hay ejercicios para esta sesión. Súbelos en Planificar o añade uno.</div><div class="row" style="justify-content:center"><button type="button" class="btn" id="eAddLive">Añadir ejercicio</button></div>`}
   const cards=d.map((x,i)=>`<div class="live${x.tStart?" on":""}">
     <div class="lhead"><input type="text" class="lname" data-er="${i}" data-k="ejercicio" value="${esc(x.ejercicio||"")}" placeholder="Nombre del ejercicio"><input type="text" class="lpist" data-er="${i}" data-k="pistas" value="${esc(x.pistas||"")}" placeholder="Pistas"></div>
     <div class="lrow"><span class="clock num" data-clock="${i}">${clockText(x)}</span>
       <button type="button" class="btn big${x.tStart?"":" ghost"}" data-tgo="${i}">${x.tStart?"Acabar":(x.tAcc?"Seguir":"Empezar")}</button></div>
+    <div class="tfix"><span class="note">Corregir tiempo</span><button type="button" class="mvb" data-tadd="${i}|-1" aria-label="Quitar un minuto">−1′</button>
+      <input type="text" inputmode="decimal" data-tset="${i}" value="${x.tStart?"":esc(x.tAcc?clockText(x):(x.minutos||""))}" placeholder="${x.tStart?"poner":"12:30"}" aria-label="Tiempo del ejercicio (min o min:seg)">
+      <button type="button" class="mvb" data-tadd="${i}|1" aria-label="Añadir un minuto">+1′</button></div>
+    <div class="tally">${TALLY.map(([k,sym,lab])=>{const n=cnt(x[k]);return `<div class="tcol">
+      <button type="button" class="cbtn ${k==="enteras"?"full":"half"}" data-ecnt="${i}|${k}|1" aria-label="${lab}: ${n}. Toca para sumar una" title="${lab}">${courtSvg(k==="enteras")}<span class="cnum num">${n}</span></button>
+      <button type="button" class="mvb" data-ecnt="${i}|${k}|-1" aria-label="Quitar una ${lab.toLowerCase()}"${n?"":" disabled"}>−1</button></div>`}).join("")}</div>
+    ${x.seq?`<details class="tseq" data-seqd="${i}"${(E.seqOpen||{})[i]?" open":""}><summary>Ver secuencia (+ media pista, l pista entera)</summary>${seqHtml(x.seq)}</details>`:""}
     <div class="row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}${moveBtns(i,d.length)}<span class="note">${x.minutos?"Apuntado: "+esc(x.minutos)+" min":""}${x.tAcc&&!x.tStart?` · <button type="button" class="linkbtn" data-trs="${i}">A cero</button>`:""}</span></div>
+    ${E.askDel===i?`<div class="row lquit" style="justify-content:space-between"><span class="note">¿Quitar ${esc(x.ejercicio||"este ejercicio")}? ${x.row?"Se borrará de la hoja al guardar.":""}</span><span class="row" style="gap:8px"><button type="button" class="btn ghost" data-eqno="1" style="padding:6px 12px;font-size:14px">No</button><button type="button" class="btn" data-eqv="${i}" style="padding:6px 12px;font-size:14px;background:var(--bad);border-color:var(--bad)">Sí, quitar</button></span></div>`
+      :`<div class="row" style="justify-content:flex-end"><button type="button" class="linkbtn" data-eqv="${i}">No se ha hecho · Quitar</button></div>`}
   </div>`).join("");
-  return `<div class="list">${cards}</div><div class="panel">${entActions()}</div>`;
+  const st=entStartOf();
+  const start=`<div class="panel"><div class="estart"><label class="label" for="eStart">Inicio del entreno</label><input id="eStart" type="time" value="${esc(st)}"><button type="button" class="btn ghost" id="eStartNow" style="padding:6px 12px;font-size:14px">Ahora</button>${st?`<button type="button" class="linkbtn" id="eStartClr">Quitar</button>`:""}</div>
+    <div class="estart"><label class="label" for="eEnd">Fin del entreno</label><input id="eEnd" type="time" value="${esc(entEndOf())}"${st?"":" disabled"}><button type="button" class="btn ghost" id="eEndNow" style="padding:6px 12px;font-size:14px"${st?"":" disabled"}>Ahora</button>${entEndOf()?`<button type="button" class="linkbtn" id="eEndClr">Quitar</button>`:""}</div>
+    ${(()=>{const du=entDur();const bd=minOf(S.tiempo.byDM[isoToDM(S.ent.date)],S.ent.ses);
+      if(!st)return `<div class="note">Pon la hora a la que empieza el entreno para que el marcador del lateral cuente los minutos.</div>`;
+      if(du==null)return `<div class="note">${entEndOf()?"La hora de fin tiene que ser después del inicio.":"Al poner la hora de fin, el tiempo de sesión se guarda solo en BD TIEMPO para las cargas. Puedes seguir cambiándolo a mano en Sesión."}</div>`;
+      return `<div class="note"><b>Sesión: ${du} min</b> · en BD TIEMPO: ${bd==null?"sin apuntar":fmt(bd,0)+" min"}${bd!==du?` <button type="button" class="linkbtn" id="eDurSave">Poner ${du} min</button>`:" ✓"}</div>`})()}</div>`;
+  return start+`<div class="list">${cards}</div><div class="panel">${entActions()}</div>`+floatHtml();
 }
 async function readEntreno(){
   const E=S.ent;const text=(document.getElementById("etext")||{}).value||"";E.text=text;
@@ -794,18 +933,19 @@ Devuelve SOLO un array JSON. No incluyas totales, sumas ni descansos. Ejemplo: [
 async function saveEntreno(){
   syncEnt();const E=S.ent;const d=E.draft;d.forEach(stopTimer);
   for(const x of d){if(!x.ejercicio.trim()){toast("Falta el nombre en algún ejercicio");return}
-    if(String(x.minutos).trim()!==""&&parseMin(x.minutos)==null){toast("Minutos no válidos en "+x.ejercicio);return}}
+    if(String(x.minutos).trim()!==""&&parseMin(x.minutos)==null){toast("Minutos no válidos en "+x.ejercicio);return}
+    for(const k of ["medias","enteras"])if(String(x[k]??"").trim()!==""&&!/^\d+$/.test(String(x[k]).trim())){toast("Pistas no válidas en "+x.ejercicio+" (pon un número entero)");return}}
   E.saving=true;render();
   try{
     /* Las filas que ya ocupaba la sesión se reparten en el orden de la lista; lo que sobre va al final de la hoja. */
     const slots=d.filter(x=>x.row).map(x=>x.row).sort((a,b)=>a-b);
-    const line=x=>{const m=parseMin(x.minutos);return {ad:[isoToDMY(E.date),E.ses,x.ejercicio.trim().toUpperCase(),m==null?"":Math.round(m*100)/100],hi:[normPistas(x.pistas),x.notas||""]}};
+    const line=x=>{const m=parseMin(x.minutos);const cj=[cnt(x.medias)||"",cnt(x.enteras)||"",String(x.seq||"")];return {ad:[isoToDMY(E.date),E.ses,x.ejercicio.trim().toUpperCase(),m==null?"":Math.round(m*100)/100],hi:[normPistas(x.pistas),x.notas||"",...cj],cj}};
     const fresh=[];
     for(let k=0;k<d.length;k++){const l=line(d[k]);
-      if(k<slots.length){const r=slots[k];await sset(ENT+"!A"+r+":D"+r,[l.ad]);if(d[k].notas===undefined)await sset(ENT+"!H"+r,[[l.hi[0]]]);else await sset(ENT+"!H"+r+":I"+r,[l.hi])}else fresh.push(l)}
-    for(const r of (E.removed||[])){await sset(ENT+"!A"+r+":D"+r,[["","","",""]]);await sset(ENT+"!H"+r+":I"+r,[["",""]])}
+      if(k<slots.length){const r=slots[k];await sset(ENT+"!A"+r+":D"+r,[l.ad]);if(d[k].notas===undefined){await sset(ENT+"!H"+r,[[l.hi[0]]]);await sset(ENT+"!J"+r+":L"+r,[l.cj])}else await sset(ENT+"!H"+r+":L"+r,[l.hi])}else fresh.push(l)}
+    for(const r of (E.removed||[])){await sset(ENT+"!A"+r+":D"+r,[["","","",""]]);await sset(ENT+"!H"+r+":L"+r,[["","","","",""]])}
     if(fresh.length){const a=E.next,b=a+fresh.length-1;
-      await sset(ENT+"!A"+a+":D"+b,fresh.map(f=>f.ad));await sset(ENT+"!H"+a+":I"+b,fresh.map(f=>f.hi))}
+      await sset(ENT+"!A"+a+":D"+b,fresh.map(f=>f.ad));await sset(ENT+"!H"+a+":L"+b,fresh.map(f=>f.hi))}
     await loadEntrenos();E.draft=null;E.removed=[];entPersist();toast(d.length+" ejercicios guardados");
   }catch(e){toast(errText(e))}
   E.saving=false;render();
@@ -825,12 +965,39 @@ function bindEntrenos(){
   document.querySelectorAll("[data-edel]").forEach(b=>b.onclick=()=>{syncEnt();const [x]=E.draft.splice(+b.dataset.edel,1);if(x&&x.row)(E.removed=E.removed||[]).push(x.row);if(!E.draft.length&&!(E.removed||[]).length)E.draft=null;render()});
   document.querySelectorAll("[data-emv]").forEach(b=>b.onclick=()=>{syncEnt();const [i,dir]=b.dataset.emv.split("|").map(Number),j=i+dir;const d=E.draft;if(!d||j<0||j>=d.length)return;[d[i],d[j]]=[d[j],d[i]];entPersist();render()});
   const sv=document.getElementById("eSave");if(sv)sv.onclick=saveEntreno;
-  const dr=document.getElementById("eDrop");if(dr)dr.onclick=()=>{E.draft=null;E.removed=[];render()};
+  const dr=document.getElementById("eDrop");if(dr)dr.onclick=()=>{E.draft=null;E.removed=[];E.askDel=null;entPersist();render()};
   const ed=document.getElementById("eEdit");if(ed)ed.onclick=()=>{E.draft=entFromSaved();render()};
   document.querySelectorAll("[data-tgo]").forEach(b=>b.onclick=()=>{syncEnt();const i=+b.dataset.tgo,x=E.draft[i];
     if(x.tStart){stopTimer(x);toast((x.ejercicio||"Ejercicio")+": "+x.minutos+" min")}
     else{E.draft.forEach((y,j)=>{if(j!==i)stopTimer(y)});x.tStart=Date.now()}
     render()});
+  document.querySelectorAll("[data-tadd]").forEach(b=>b.onclick=()=>{syncEnt();const [i,dm]=b.dataset.tadd.split("|").map(Number);const x=E.draft[i];setTimer(x,timeBase(x)+dm*60000);entPersist();render()});
+  document.querySelectorAll("[data-tset]").forEach(inp=>inp.onchange=()=>{syncEnt();const x=E.draft[+inp.dataset.tset];const v=inp.value.trim();
+    if(v===""){if(!x.tStart){x.tAcc=0;x.minutos=""}entPersist();render();return}
+    const m=parseMin(v);if(m==null||m<0||m>300){toast("Escribe el tiempo como 12 o 12:30");inp.value="";return}
+    setTimer(x,m*60000);entPersist();render()});
+  /* Contador de pistas: cada toque suma una (+ media pista, l pista entera); −1 por si se equivoca. Se guarda en el borrador al momento. */
+  document.querySelectorAll("[data-ecnt]").forEach(b=>b.onclick=()=>{syncEnt();const [i,k,dv]=b.dataset.ecnt.split("|");const x=E.draft[+i];if(!x)return;
+    const sym=k==="medias"?"+":"l";let q=String(x.seq||"");
+    if(+dv>0)q+=sym;else if(cnt(x[k])>0){const j=q.lastIndexOf(sym);if(j>=0)q=q.slice(0,j)+q.slice(j+1)}
+    x[k]=Math.max(0,cnt(x[k])+(+dv));x.seq=q;entPersist();if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){};render()});
+  const es=document.getElementById("eStart");if(es)es.onchange=()=>{setEntStart(es.value);render()};
+  const en=document.getElementById("eStartNow");if(en)en.onclick=()=>{const d=new Date();setEntStart(String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"));render()};
+  const ec=document.getElementById("eStartClr");if(ec)ec.onclick=()=>{setEntStart("");render()};
+  /* Al poner la hora de fin, el tiempo de sesión va solo a BD TIEMPO; en Sesión se puede seguir corrigiendo a mano. */
+  const endSet=v=>{setEntEnd(v);const du=entDur();if(du!=null)saveTiempoEnt(du);else render()};
+  const ee=document.getElementById("eEnd");if(ee)ee.onchange=()=>endSet(ee.value);
+  const eN=document.getElementById("eEndNow");if(eN)eN.onclick=()=>{const d=new Date();endSet(String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"))};
+  const eC=document.getElementById("eEndClr");if(eC)eC.onclick=()=>{setEntEnd("");render()};
+  const eD=document.getElementById("eDurSave");if(eD)eD.onclick=()=>{const du=entDur();if(du!=null)saveTiempoEnt(du)};
+  const ft=document.getElementById("eFloatTab");if(ft)ft.onclick=()=>{E.floatOff=!E.floatOff;render()};
+  document.querySelectorAll("[data-seqd]").forEach(d=>d.addEventListener("toggle",()=>{(E.seqOpen=E.seqOpen||{})[d.dataset.seqd]=d.open}));
+  /* Quitar en vivo un ejercicio que al final no se hace: primer toque pregunta, segundo quita. Si ya estaba en la hoja, su fila se vacía al guardar. */
+  document.querySelectorAll("[data-eqv]").forEach(b=>b.onclick=()=>{syncEnt();const i=+b.dataset.eqv;
+    if(E.askDel!==i){E.askDel=i;render();return}
+    E.askDel=null;const [x]=E.draft.splice(i,1);if(x){stopTimer(x);if(x.row)(E.removed=E.removed||[]).push(x.row)}
+    if(!E.draft.length&&!(E.removed||[]).length)E.draft=null;entPersist();toast((x&&x.ejercicio||"Ejercicio")+" quitado");render()});
+  document.querySelectorAll("[data-eqno]").forEach(b=>b.onclick=()=>{E.askDel=null;render()});
   document.querySelectorAll("[data-trs]").forEach(b=>b.onclick=()=>{syncEnt();const x=E.draft[+b.dataset.trs];x.tAcc=0;x.tStart=null;x.minutos="";render()});
   document.querySelectorAll("[data-er]").forEach(el=>el.addEventListener("change",()=>{syncEnt();entPersist()}));
   document.querySelectorAll('[data-er][data-k="ejercicio"]').forEach(inp=>inp.oninput=()=>{const p=document.querySelector('[data-opo="'+inp.dataset.er+'"]');if(p){const o=isOpo(inp.value);p.className="pill "+(o?"bad":"ok");p.textContent=o?"Oposición":"Sin oposición"}});
@@ -943,6 +1110,7 @@ function bind(){
   document.querySelectorAll("[data-load]").forEach(b=>b.onclick=async()=>{S.loadTab=b.dataset.load;render();if(!S.loads[S.loadTab]&&S.mcp){try{await loadLoad(S.loadTab)}catch(e){S.err=errText(e)}render()}});
   const pd=document.getElementById("pdate");if(pd)pd.onchange=()=>{if(pd.value){S.pesoDate=pd.value;render()}};
   const sp=document.getElementById("savePeso");if(sp)sp.onclick=savePesos;
+  document.querySelectorAll("[data-peso]").forEach(b=>{b.onclick=()=>openPeso(+b.dataset.peso);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPeso(+b.dataset.peso)}}});
   document.querySelectorAll("[data-up]").forEach(i=>i.onchange=()=>{if(i.files&&i.files[0])uploadPhoto(i.dataset.up,i.files[0])});
 }
 
