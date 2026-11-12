@@ -182,14 +182,15 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .lpist{font:600 17px/1.1 var(--display);color:var(--muted);text-align:right}
 .tfix{display:flex;align-items:center;gap:8px}.tfix .note{flex:1}.tfix input{width:84px;text-align:center;font:600 18px/1 var(--display);padding:6px}.tfix .mvb{width:auto;padding:0 10px;font-size:15px}
 .lrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.tally{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+.tally{display:flex;justify-content:center;align-items:flex-end;gap:22px;padding:4px 0}
 /* Botones-pista en relieve: parqué, líneas blancas y el número grande encima. */
-.cbtn{position:relative;display:block;width:100%;height:118px;padding:0;border:0;border-radius:16px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;overflow:hidden;
+.cbtn{position:relative;display:block;padding:0;border:0;border-radius:6px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;overflow:hidden;
   background:linear-gradient(180deg,#f0c48a 0%,#dca468 100%);color:#fff;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(0,0,0,.12),0 6px 0 #9a6331,0 10px 16px rgba(0,0,0,.35);transform:translateY(0);transition:transform .06s,box-shadow .06s}
 .cbtn:active,.cbtn.hit{transform:translateY(5px);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),inset 0 -2px 0 rgba(0,0,0,.12),0 1px 0 #9a6331,0 3px 6px rgba(0,0,0,.3)}
-.cbtn svg{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px)}
-.cbtn .cnum{position:absolute;inset:0;display:grid;place-items:center;font:800 52px/1 var(--display);color:#fff;-webkit-text-stroke:2px #5b0a2a;paint-order:stroke fill;text-shadow:0 3px 0 #5b0a2a,0 6px 10px rgba(0,0,0,.35)}
+.cbtn.half{width:84px;height:78px}.cbtn.full{width:146px;height:78px}
+.cbtn svg{position:absolute;inset:0;width:100%;height:100%}
+.cbtn .cnum{position:absolute;inset:0;display:grid;place-items:center;font:800 36px/1 var(--display);color:#fff;-webkit-text-stroke:2px #5b0a2a;paint-order:stroke fill;text-shadow:0 3px 0 #5b0a2a,0 6px 10px rgba(0,0,0,.35)}
 .cbtn .clab{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);white-space:nowrap;font:700 11px/1 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;background:rgba(91,10,42,.85);color:#fff;padding:4px 8px;border-radius:999px}
 .tcol{display:flex;flex-direction:column;gap:8px}
 .tcol .mvb{align-self:center;width:auto;height:30px;padding:0 12px;font-size:14px}
@@ -768,9 +769,9 @@ function seqHtml(q){const r=seqRuns(q);if(!r.length)return "";
   const best=c=>Math.max(0,...r.filter(x=>x[0]===c).map(x=>x.length));
   return `<div class="runs">${r.map(x=>`<span class="${x[0]==="+"?"r-m":"r-e"}">${x}</span>`).join("")}</div><div class="note">${r.length-1} cambio${r.length===2?"":"s"} · racha más larga: ${best("+")} HC seguidas, ${best("l")} FC seguidas</div>`}
 /* Dibujo de la pista (medidas FIBA en decímetros): media pista con la canasta abajo; pista entera en horizontal. */
-function courtSvg(full){const L='fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"',P='fill="rgba(163,18,75,.55)" stroke="#fff" stroke-width="2.4"';
-  if(!full)return `<svg viewBox="-4 -4 158 148" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><rect x="0" y="0" width="150" height="140" ${L}/><rect x="51" y="82" width="48" height="58" ${P}/><circle cx="75" cy="82" r="18" ${L}/><path d="M9 140V110A67.5 67.5 0 0 1 141 110V140" ${L}/><path d="M57 0A18 18 0 0 0 93 0" ${L}/><line x1="66" y1="128" x2="84" y2="128" ${L}/><circle cx="75" cy="124" r="3" ${L}/></svg>`;
-  return `<svg viewBox="-4 -4 288 158" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><rect x="0" y="0" width="280" height="150" ${L}/><line x1="140" y1="0" x2="140" y2="150" ${L}/><circle cx="140" cy="75" r="18" ${L}/>
+function courtSvg(full){const L='fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"',P='fill="rgba(163,18,75,.55)" stroke="#fff" stroke-width="2.4"';
+  if(!full)return `<svg viewBox="-2 -2 154 144" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="0" width="150" height="140" ${L}/><rect x="51" y="82" width="48" height="58" ${P}/><circle cx="75" cy="82" r="18" ${L}/><path d="M9 140V110A67.5 67.5 0 0 1 141 110V140" ${L}/><path d="M57 0A18 18 0 0 0 93 0" ${L}/><line x1="66" y1="128" x2="84" y2="128" ${L}/><circle cx="75" cy="124" r="3" ${L}/></svg>`;
+  return `<svg viewBox="-2 -2 284 154" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="0" width="280" height="150" ${L}/><line x1="140" y1="0" x2="140" y2="150" ${L}/><circle cx="140" cy="75" r="18" ${L}/>
     <rect x="0" y="51" width="58" height="48" ${P}/><circle cx="58" cy="75" r="18" ${L}/><path d="M0 9H30A67.5 67.5 0 0 1 30 141H0" ${L}/><line x1="12" y1="66" x2="12" y2="84" ${L}/><circle cx="16" cy="75" r="3" ${L}/>
     <rect x="222" y="51" width="58" height="48" ${P}/><circle cx="222" cy="75" r="18" ${L}/><path d="M280 9H250A67.5 67.5 0 0 0 250 141H280" ${L}/><line x1="268" y1="66" x2="268" y2="84" ${L}/><circle cx="264" cy="75" r="3" ${L}/></svg>`}
 function entFor(iso,ses){return S.ent.rows.filter(r=>r.iso===iso&&r.ses===ses)}
@@ -851,7 +852,7 @@ function viewVivo(){
       <input type="text" inputmode="decimal" data-tset="${i}" value="${x.tStart?"":esc(x.tAcc?clockText(x):(x.minutos||""))}" placeholder="${x.tStart?"poner":"12:30"}" aria-label="Tiempo del ejercicio (min o min:seg)">
       <button type="button" class="mvb" data-tadd="${i}|1" aria-label="Añadir un minuto">+1′</button></div>
     <div class="tally">${TALLY.map(([k,sym,lab])=>{const n=cnt(x[k]);return `<div class="tcol">
-      <button type="button" class="cbtn" data-ecnt="${i}|${k}|1" aria-label="${lab}: ${n}. Toca para sumar una">${courtSvg(k==="enteras")}<span class="cnum num">${n}</span><span class="clab">${lab}</span></button>
+      <button type="button" class="cbtn ${k==="enteras"?"full":"half"}" data-ecnt="${i}|${k}|1" aria-label="${lab}: ${n}. Toca para sumar una" title="${lab}">${courtSvg(k==="enteras")}<span class="cnum num">${n}</span></button>
       <button type="button" class="mvb" data-ecnt="${i}|${k}|-1" aria-label="Quitar una ${lab.toLowerCase()}"${n?"":" disabled"}>−1</button></div>`}).join("")}</div>
     ${x.seq?`<details class="tseq" data-seqd="${i}"${(E.seqOpen||{})[i]?" open":""}><summary>Ver secuencia (+ media pista, l pista entera)</summary>${seqHtml(x.seq)}</details>`:""}
     <div class="row" style="justify-content:space-between">${opoPill(x.ejercicio,i)}${moveBtns(i,d.length)}<span class="note">${x.minutos?"Apuntado: "+esc(x.minutos)+" min":""}${x.tAcc&&!x.tStart?` · <button type="button" class="linkbtn" data-trs="${i}">A cero</button>`:""}</span></div>
