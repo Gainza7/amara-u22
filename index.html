@@ -236,6 +236,12 @@ main>.weeknav .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
 .confirm .big{width:96px;height:96px;border-radius:20px;display:grid;place-items:center;font:700 60px/1 var(--display);color:#fff}
 @media (max-width:420px){nav.tabs button{font-size:11px;letter-spacing:0;padding-inline:1px}.drow .wide{grid-column:1/-1}.drow .half{grid-column:span 3}.wrow{grid-template-columns:minmax(0,1fr) 80px 60px}.wrow .imc{display:none}}
 @media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:active{transform:scale(.97)}}
+.dtab td.nmc{font-weight:600}.dtab tr.miss td{color:var(--muted)}.dtab .when{display:block;font-size:11px;color:var(--muted)}
+.dsum{display:flex;gap:8px;flex-wrap:wrap}.dsum div{flex:1 1 90px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}.dsum b{display:block;font:700 22px/1.1 var(--display)}.dsum span{font-size:12px;color:var(--muted)}
+@media (max-width:420px){.dtab .imcc{display:none}.dtab{font-size:14px}}
+@media print{body.print-dia>*:not(#sheetHost){display:none!important}body.print-dia{background:#fff;color:#000}
+  body.print-dia .sheet-bg{position:static;background:none;display:block}body.print-dia .sheet{max-width:none;max-height:none;overflow:visible;border-radius:0;box-shadow:none;padding:0}
+  body.print-dia .noprint{display:none!important}body.print-dia .dtab .imcc{display:table-cell}}
 </style>
 
 <div class="app">
@@ -602,7 +608,13 @@ function viewPesos(){
     return `<div class="wrow tap" data-peso="${p.row}" role="button" tabindex="0" aria-label="Ver pesajes de ${esc(p.name)}"><div style="min-width:0"><div class="nm">${esc(p.name)}</div><div class="sub">${esc(pr[3]||"–")} kg · ${esc(pr[4]||"")}</div></div>
       <div>${spark(p.vals)}</div><div class="pct ${cls?"":""}" style="color:${cls==="bad"?"var(--bad)":cls==="warn"?"var(--warn)":"var(--fg)"}">${esc(pr[6]||"")}</div><div class="sub imc" style="text-align:right">IMC<br><span class="num" style="color:var(--fg)">${esc(pr[8]||"–")}</span></div></div>`}).join("");
   const form=players.map(p=>`<div class="inrow"><label for="w-${p.row}">${esc(p.name)}</label><input id="w-${p.row}" data-row="${p.row}" type="text" inputmode="decimal" placeholder="kg" value="${p.cur==null?"":String(p.cur).replace(".",",")}"></div>`).join("");
-  return `<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Evolución desde el primer pesaje</span><span class="note">naranja ≥3 %, rojo ≥5 %</span></div><div class="note">Toca un jugador para ver todos sus pesajes.</div><div class="list">${list}</div></div>
+  const dias=hdr.map((h,i)=>({i,dm:String(h||"").trim(),n:S.pesos.slice(1).filter(r=>r[0]&&num(r[i])!=null).length})).filter(d=>d.i>=2&&d.dm);
+  const lastDia=[...dias].reverse().find(d=>d.n)||dias[dias.length-1];
+  const dia=dias.length?`<div class="panel"><span class="label">Registro de un día</span>
+    <div class="note">Elige una fecha de pesaje y ves a todos los jugadores ese día, para copiar o imprimir.</div>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><select id="pdia" aria-label="Fecha de pesaje" style="flex:1;min-width:150px">${dias.map(d=>`<option value="${d.i}"${d===lastDia?" selected":""}>${esc(d.dm)} · ${d.n?d.n+" pesado"+(d.n>1?"s":""):"sin pesos"}</option>`).join("")}</select>
+    <button class="btn" id="verDia" type="button">Ver registro</button></div></div>`:"";
+  return dia+`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Evolución desde el primer pesaje</span><span class="note">naranja ≥3 %, rojo ≥5 %</span></div><div class="note">Toca un jugador para ver todos sus pesajes.</div><div class="list">${list}</div></div>
   <div class="panel"><span class="label">${exists?"Corregir pesaje":"Nuevo pesaje"}</span>
     <div class="field"><label class="label" for="pdate">Fecha</label><input id="pdate" type="date" value="${S.pesoDate}"></div>
     <div class="note">${exists?"Ya hay una columna "+esc(dm)+" en PESOS: al guardar se sobrescribe.":"Se creará la columna "+esc(dm)+" en PESOS. Deja vacío quien no se pese."}</div>
@@ -641,6 +653,46 @@ function openPeso(row){
   </div></div>`;
   host.querySelector("#closeS").onclick=close;
   host.querySelector("#sbg").onclick=e=>{if(e.target.id==="sbg")close()};
+}
+
+function openPesoDia(col){
+  const hdr=(S.pesos||[])[0]||[];const dm=String(hdr[col]||"").trim();if(!dm)return;
+  const rows=S.pesos.slice(1).filter(r=>r[0]).map(r=>{
+    const kg=num(r[col]);const alt=num(r[1]);let prev=null,first=null;
+    for(let c=2;c<hdr.length;c++){if(!String(hdr[c]||"").trim())continue;const k=num(r[c]);if(k==null)continue;if(!first&&c<=col)first={c,kg:k};if(c<col)prev={c,kg:k}}
+    return {name:String(r[0]).trim(),kg,alt,prev,first,imc:kg!=null&&alt?kg/(alt*alt):null};
+  });
+  const done=rows.filter(x=>x.kg!=null),miss=rows.filter(x=>x.kg==null);
+  const dP=done.filter(x=>x.prev).map(x=>x.kg-x.prev.kg);
+  const alerts=done.filter(x=>x.first&&x.first.c<col&&Math.abs((x.kg-x.first.kg)/x.first.kg*100)>=3).length;
+  const line=x=>{
+    if(x.kg==null)return `<tr class="miss"><td class="nmc">${esc(x.name)}</td><td class="num">–</td><td class="num" colspan="2">no se pesó</td><td class="num imcc"></td></tr>`;
+    const dp=x.prev?x.kg-x.prev.kg:null;const isFirst=!x.first||x.first.c===col;const df=isFirst?null:x.kg-x.first.kg;const pf=isFirst?null:df/x.first.kg*100;
+    return `<tr><td class="nmc">${esc(x.name)}</td><td class="num"><b>${fmt(x.kg,1)}</b></td>
+      <td class="num">${dp==null?"–":`<span style="color:${pesoCol(dp/x.prev.kg*100)}">${signed(dp,1)}</span><span class="when">desde ${esc(String(hdr[x.prev.c]).trim())}</span>`}</td>
+      <td class="num">${isFirst?`<span class="sub">primer pesaje</span>`:`<span style="color:${pesoCol(pf)}">${signed(df,1)}</span><span class="when">${signed(pf,1)} % · ${esc(String(hdr[x.first.c]).trim())}</span>`}</td>
+      <td class="num imcc">${x.imc==null?"–":fmt(x.imc,1)}</td></tr>`};
+  const host=document.getElementById("sheetHost");
+  const close=()=>{host.innerHTML="";document.body.classList.remove("print-dia")};
+  host.innerHTML=`<div class="sheet-bg" id="sbg"><div class="sheet" role="dialog" aria-label="Pesos del ${esc(dm)}">
+    <div class="row" style="justify-content:space-between"><h2>Pesos ${esc(dm)}</h2><button class="btn ghost noprint" id="closeS" type="button">Cerrar</button></div>
+    <div class="dsum"><div><b>${done.length}/${rows.length}</b><span>pesados</span></div><div><b>${dP.length?signed(dP.reduce((a,b)=>a+b,0)/dP.length,1):"–"}</b><span>kg medio vs anterior</span></div><div><b style="color:${alerts?"var(--warn)":"var(--fg)"}">${alerts}</b><span>≥3 % vs primero</span></div></div>
+    ${done.length?"":`<div class="note">Esta columna de PESOS está vacía: nadie tiene peso ese día.</div>`}
+    <table class="ptab dtab"><thead><tr><th>Jugador</th><th>Kg</th><th>vs anterior</th><th>vs primero</th><th class="imcc">IMC</th></tr></thead><tbody>${done.map(line).join("")}${miss.map(line).join("")}</tbody></table>
+    <div class="note">Naranja ≥3 %, rojo ≥5 %. "vs anterior" compara con el último pesaje de cada jugador antes de este día.</div>
+    <div class="row noprint" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" id="copyDia" type="button">Copiar tabla</button><button class="btn" id="printDia" type="button">Imprimir / PDF</button></div>
+  </div></div>`;
+  host.querySelector("#closeS").onclick=close;
+  host.querySelector("#sbg").onclick=e=>{if(e.target.id==="sbg")close()};
+  const n1=v=>v==null?"":fmt(v,1);
+  host.querySelector("#copyDia").onclick=async()=>{
+    const tsv=[["Jugador","Kg","vs anterior (kg)","Fecha anterior","vs primero (kg)","vs primero (%)","IMC"].join("\t")].concat(rows.map(x=>{
+      if(x.kg==null)return [x.name,"no se pesó","","","","",""].join("\t");
+      const isFirst=!x.first||x.first.c===col;
+      return [x.name,n1(x.kg),x.prev?n1(x.kg-x.prev.kg):"",x.prev?String(hdr[x.prev.c]).trim():"",isFirst?"":n1(x.kg-x.first.kg),isFirst?"":n1((x.kg-x.first.kg)/x.first.kg*100),n1(x.imc)].join("\t")})).join("\n");
+    try{await navigator.clipboard.writeText("Pesos "+dm+"\n"+tsv);toast("Tabla copiada: pégala en una hoja o en WhatsApp")}catch(e){toast("No se pudo copiar en este navegador")}};
+  host.querySelector("#printDia").onclick=()=>{document.body.classList.add("print-dia");try{window.print()}catch(e){toast("Este navegador no deja imprimir aquí")}
+    setTimeout(()=>document.body.classList.remove("print-dia"),1000)};
 }
 
 async function savePesos(){
@@ -1110,6 +1162,7 @@ function bind(){
   document.querySelectorAll("[data-load]").forEach(b=>b.onclick=async()=>{S.loadTab=b.dataset.load;render();if(!S.loads[S.loadTab]&&S.mcp){try{await loadLoad(S.loadTab)}catch(e){S.err=errText(e)}render()}});
   const pd=document.getElementById("pdate");if(pd)pd.onchange=()=>{if(pd.value){S.pesoDate=pd.value;render()}};
   const sp=document.getElementById("savePeso");if(sp)sp.onclick=savePesos;
+  const vd=document.getElementById("verDia");if(vd)vd.onclick=()=>openPesoDia(+document.getElementById("pdia").value);
   document.querySelectorAll("[data-peso]").forEach(b=>{b.onclick=()=>openPeso(+b.dataset.peso);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPeso(+b.dataset.peso)}}});
   document.querySelectorAll("[data-up]").forEach(i=>i.onchange=()=>{if(i.files&&i.files[0])uploadPhoto(i.dataset.up,i.files[0])});
 }
