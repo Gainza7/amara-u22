@@ -611,7 +611,7 @@ function viewPesos(){
   const dias=hdr.map((h,i)=>({i,dm:String(h||"").trim(),n:S.pesos.slice(1).filter(r=>r[0]&&num(r[i])!=null).length})).filter(d=>d.i>=2&&d.dm);
   const lastDia=[...dias].reverse().find(d=>d.n)||dias[dias.length-1];
   const dia=dias.length?`<div class="panel"><span class="label">Registro de un día</span>
-    <div class="note">Elige una fecha de pesaje y ves a todos los jugadores ese día, para copiar o imprimir.</div>
+    <div class="note">Elige una fecha de pesaje y ves a todos los jugadores ese día, para guardarlo como imagen, copiarlo o imprimirlo.</div>
     <div class="row" style="gap:8px;flex-wrap:wrap"><select id="pdia" aria-label="Fecha de pesaje" style="flex:1;min-width:150px">${dias.map(d=>`<option value="${d.i}"${d===lastDia?" selected":""}>${esc(d.dm)} · ${d.n?d.n+" pesado"+(d.n>1?"s":""):"sin pesos"}</option>`).join("")}</select>
     <button class="btn" id="verDia" type="button">Ver registro</button></div></div>`:"";
   return dia+`<div class="panel"><div class="row" style="justify-content:space-between"><span class="label">Evolución desde el primer pesaje</span><span class="note">naranja ≥3 %, rojo ≥5 %</span></div><div class="note">Toca un jugador para ver todos sus pesajes.</div><div class="list">${list}</div></div>
@@ -680,7 +680,7 @@ function openPesoDia(col){
     ${done.length?"":`<div class="note">Esta columna de PESOS está vacía: nadie tiene peso ese día.</div>`}
     <table class="ptab dtab"><thead><tr><th>Jugador</th><th>Kg</th><th>vs anterior</th><th>vs primero</th><th class="imcc">IMC</th></tr></thead><tbody>${done.map(line).join("")}${miss.map(line).join("")}</tbody></table>
     <div class="note">Naranja ≥3 %, rojo ≥5 %. "vs anterior" compara con el último pesaje de cada jugador antes de este día.</div>
-    <div class="row noprint" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" id="copyDia" type="button">Copiar tabla</button><button class="btn" id="printDia" type="button">Imprimir / PDF</button></div>
+    <div class="row noprint" style="gap:8px;flex-wrap:wrap"><button class="btn" id="imgDia" type="button">Guardar imagen</button><button class="btn ghost" id="copyDia" type="button">Copiar tabla</button><button class="btn ghost" id="printDia" type="button">Imprimir</button></div>
   </div></div>`;
   host.querySelector("#closeS").onclick=close;
   host.querySelector("#sbg").onclick=e=>{if(e.target.id==="sbg")close()};
@@ -691,8 +691,47 @@ function openPesoDia(col){
       const isFirst=!x.first||x.first.c===col;
       return [x.name,n1(x.kg),x.prev?n1(x.kg-x.prev.kg):"",x.prev?String(hdr[x.prev.c]).trim():"",isFirst?"":n1(x.kg-x.first.kg),isFirst?"":n1((x.kg-x.first.kg)/x.first.kg*100),n1(x.imc)].join("\t")})).join("\n");
     try{await navigator.clipboard.writeText("Pesos "+dm+"\n"+tsv);toast("Tabla copiada: pégala en una hoja o en WhatsApp")}catch(e){toast("No se pudo copiar en este navegador")}};
+  const C=window.claude;const dlP=(C&&C.use?C.use("downloads"):Promise.resolve(null)).catch(()=>null);
+  host.querySelector("#imgDia").onclick=async()=>{
+    const blob=await pesoDiaPNG(dm,done,miss,rows.length,hdr,col);if(!blob){toast("No se pudo crear la imagen");return}
+    await saveFile("Pesos "+dm.replace("/","-")+".png",blob,dlP);
+  };
   host.querySelector("#printDia").onclick=()=>{document.body.classList.add("print-dia");try{window.print()}catch(e){toast("Este navegador no deja imprimir aquí")}
     setTimeout(()=>document.body.classList.remove("print-dia"),1000)};
+}
+
+/* Guarda un archivo: en claude.ai con el permiso de descargas; en el móvil con el menú de compartir (Guardar imagen, WhatsApp…); si no, descarga normal. */
+async function saveFile(name,blob,dlP){
+  const dl=dlP?await dlP:null;
+  if(dl){try{await dl.save({filename:name,data:blob});toast("Imagen guardada")}catch(e){if(!e||e.code!=="declined")toast("Aquí no deja guardar archivos: usa Copiar tabla")}return}
+  try{const f=new File([blob],name,{type:blob.type});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}}catch(e){if(e&&e.name==="AbortError")return}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},3000);
+}
+/* Dibuja el registro del día en una imagen PNG (para guardar en el móvil o mandar por WhatsApp). */
+function pesoDiaPNG(dm,done,miss,total,hdr,col){
+  const W=1080,P=48,RH=96,list=done.concat(miss),H=300+list.length*RH+90;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;const g=cv.getContext("2d");if(!g)return Promise.resolve(null);
+  const F="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif",colr=d=>Math.abs(d)>=5?"#c0262d":Math.abs(d)>=3?"#c26a00":"#1b1b1b";
+  const hd=c=>String(hdr[c]||"").trim();
+  g.fillStyle="#fff";g.fillRect(0,0,W,H);g.fillStyle="#7a0b35";g.fillRect(0,0,W,150);
+  g.fillStyle="#fff";g.font="800 60px "+F;g.textBaseline="middle";g.fillText("PESOS "+dm,P,62);
+  g.font="500 30px "+F;g.globalAlpha=.85;g.fillText("Amara Lleida U22 · "+done.length+"/"+total+" pesados",P,118);g.globalAlpha=1;
+  const X=[P,470,710,905,W-P];let y=200;
+  g.fillStyle="#6b6b6b";g.font="600 26px "+F;
+  g.textAlign="left";g.fillText("Jugador",X[0],y);g.textAlign="right";g.fillText("Kg",X[1],y);g.fillText("vs anterior",X[2],y);g.fillText("vs primero",X[3],y);g.fillText("IMC",X[4],y);
+  g.fillStyle="#ddd";g.fillRect(P,y+28,W-2*P,2);y+=28;
+  list.forEach(x=>{const cy=y+RH/2;g.textAlign="left";g.fillStyle=x.kg==null?"#9a9a9a":"#1b1b1b";g.font="700 34px "+F;g.fillText(x.name,X[0],cy);g.textAlign="right";
+    if(x.kg==null){g.font="500 28px "+F;g.fillStyle="#9a9a9a";g.fillText("no se pesó",X[3],cy)}
+    else{g.font="800 38px "+F;g.fillStyle="#1b1b1b";g.fillText(fmt(x.kg,1),X[1],cy);
+      if(x.prev){const dp=x.kg-x.prev.kg;g.font="700 32px "+F;g.fillStyle=colr(dp/x.prev.kg*100);g.fillText(signed(dp,1),X[2],cy-12);g.font="400 22px "+F;g.fillStyle="#8a8a8a";g.fillText("desde "+hd(x.prev.c),X[2],cy+22)}
+      else{g.font="400 30px "+F;g.fillStyle="#8a8a8a";g.fillText("–",X[2],cy)}
+      if(x.first&&x.first.c!==col){const df=x.kg-x.first.kg,pf=df/x.first.kg*100;g.font="700 32px "+F;g.fillStyle=colr(pf);g.fillText(signed(df,1),X[3],cy-12);g.font="400 22px "+F;g.fillStyle="#8a8a8a";g.fillText(signed(pf,1)+" % · "+hd(x.first.c),X[3],cy+22)}
+      else{g.font="400 24px "+F;g.fillStyle="#8a8a8a";g.fillText("primer pesaje",X[3],cy)}
+      g.font="500 30px "+F;g.fillStyle="#1b1b1b";g.fillText(x.imc==null?"–":fmt(x.imc,1),X[4],cy)}
+    y+=RH;g.fillStyle="#e6e6e6";g.fillRect(P,y,W-2*P,2)});
+  g.textAlign="left";g.font="400 24px "+F;g.fillStyle="#8a8a8a";g.fillText("Naranja ≥3 %, rojo ≥5 %. vs anterior = último pesaje de cada jugador antes de este día.",P,y+50);
+  return new Promise(r=>cv.toBlob(b=>r(b),"image/png"));
 }
 
 async function savePesos(){
