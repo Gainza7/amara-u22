@@ -939,7 +939,8 @@ async function saveEntreno(){
   try{
     /* Las filas que ya ocupaba la sesión se reparten en el orden de la lista; lo que sobre va al final de la hoja. */
     const slots=d.filter(x=>x.row).map(x=>x.row).sort((a,b)=>a-b);
-    const line=x=>{const m=parseMin(x.minutos);const cj=[cnt(x.medias)||"",cnt(x.enteras)||"",String(x.seq||"")];return {ad:[isoToDMY(E.date),E.ses,x.ejercicio.trim().toUpperCase(),m==null?"":Math.round(m*100)/100],hi:[normPistas(x.pistas),x.notas||"",...cj],cj}};
+    const line=x=>{const m=parseMin(x.minutos);/* La secuencia va con ' delante: si empieza por "+", la hoja la tomaría como fórmula (#NAME?). */
+    const cj=[cnt(x.medias)||"",cnt(x.enteras)||"",x.seq?"'"+x.seq:""];return {ad:[isoToDMY(E.date),E.ses,x.ejercicio.trim().toUpperCase(),m==null?"":Math.round(m*100)/100],hi:[normPistas(x.pistas),x.notas||"",...cj],cj}};
     const fresh=[];
     for(let k=0;k<d.length;k++){const l=line(d[k]);
       if(k<slots.length){const r=slots[k];await sset(ENT+"!A"+r+":D"+r,[l.ad]);if(d[k].notas===undefined){await sset(ENT+"!H"+r,[[l.hi[0]]]);await sset(ENT+"!J"+r+":L"+r,[l.cj])}else await sset(ENT+"!H"+r+":L"+r,[l.hi])}else fresh.push(l)}
